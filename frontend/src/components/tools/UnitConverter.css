@@ -1,0 +1,135 @@
+.unit-converter {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.converter-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.converter-input-group label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 14px;
+}
+
+.value-input {
+  padding: 0.75rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.value-input:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.converter-units {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.unit-select-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-select-group label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 13px;
+}
+
+.unit-select {
+  padding: 0.75rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.unit-select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.swap-btn {
+  padding: 0.75rem;
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap-btn:hover {
+  background: #e0e0e0;
+}
+
+.convert-btn {
+  padding: 0.75rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.convert-btn:hover:not(:disabled) {
+  background: #0052a3;
+}
+
+.convert-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result {
+  padding: 1rem;
+  border-radius: 4px;
+  border-left: 4px solid #4caf50;
+  background: #f1f8f4;
+  animation: slideIn 0.3s ease-out;
+}
+
+.result h4 {
+  color: #2e7d32;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.result-value {
+  color: #1b5e20;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
