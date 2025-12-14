@@ -40,43 +40,120 @@ A powerful web platform that helps engineering students read, understand, and ve
 - OpenAI API Key (get from https://platform.openai.com/api-keys)
 - Git
 
-## 🚀 Quick Start
+## 🚀 Quick Start (For New Users)
 
-### 1. Clone Repository
+**Want to clone and run this project? Follow these simple steps:**
+
+### Step 1: Install Prerequisites
+
+Make sure you have these installed:
+- ✅ **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop)
+- ✅ **Git** - [Download here](https://git-scm.com/downloads)
+- ✅ **OpenAI API Key** - [Get one here](https://platform.openai.com/api-keys) (free trial available)
+
+### Step 2: Clone the Repository
+
+Open your terminal and run:
+
 ```bash
+# Clone the project from GitHub
 git clone https://github.com/farahaljohani/techreport-assistant.git
+
+# Navigate into the project folder
 cd techreport-assistant
 ```
 
-### 2. Setup Environment
+### Step 3: Setup Your API Key (REQUIRED)
+
+**⚠️ IMPORTANT:** The AI features need an OpenAI API key to work.
+
 ```bash
+# Copy the environment template files
 cp .env.example .env
-# Edit .env and add your OpenAI API key
-nano .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-### 3. Run with Docker (Development)
+**Edit `backend/.env` and add your OpenAI API key:**
+
 ```bash
-docker-compose up --build
+# On Mac/Linux:
+nano backend/.env
+
+# On Windows:
+notepad backend/.env
 ```
 
-### 4. Access Application
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Documentation:** http://localhost:8000/docs
-- **Nginx (Reverse Proxy):** http://localhost
+**Add this to the file:**
+```bash
+OPENAI_API_KEY=sk-proj-your-actual-key-here
+BACKEND_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+ENVIRONMENT=development
+```
 
-## 📦 Docker Commands
+💡 **How to get an API key:**
+1. Visit https://platform.openai.com/api-keys
+2. Sign up or log in to your OpenAI account
+3. Click "Create new secret key"
+4. Copy the key (starts with `sk-proj-`)
+5. Paste it in your `backend/.env` file (replace `your-actual-key-here`)
+
+### Step 4: Start the Application
 
 ```bash
-# Start containers
-docker-compose up
+# Build and start all services with Docker
+docker compose up --build
+```
 
-# Start in background
-docker-compose up -d
+**Wait for services to start** (1-2 minutes). You'll see messages like:
+```
+✓ Backend running on http://0.0.0.0:8000
+✓ Frontend compiled successfully!
+```
 
-# Stop containers
-docker-compose down
+### Step 5: Open in Browser
+
+Once started, open your browser and visit:
+- 🌐 **Main Application:** http://localhost:3000
+- 📚 **API Documentation:** http://localhost:8000/docs
+- 🔧 **Backend API:** http://localhost:8000
+
+### Step 6: Test It Out! 🎉
+
+1. Click **"Upload PDF"** on the landing page
+2. Select a PDF file (technical report, research paper, etc.)
+3. Wait for processing (a few seconds)
+4. Try the AI-powered tools:
+   - 💬 **Ask questions** about your document
+   - 📐 **Analyze equations** step-by-step
+   - 🔍 **Get explanations** for highlighted text
+   - 📚 **Extract definitions** automatically
+   - 🔄 **Convert units** between systems
+
+### 🛑 Stopping the Application
+
+When you're done:
+
+```bash
+# Stop all services (press Ctrl+C in the running terminal)
+# Or in a new terminal:
+docker compose down
+```
+
+---
+
+## 📦 Docker Commands Reference
+
+```bash
+# Start all containers
+docker compose up
+
+# Start in background (detached mode)
+docker compose up -d
+
+# Stop all containers
+docker compose down
 
 # View logs
 docker-compose logs -f backend
@@ -346,41 +423,165 @@ kubectl create secret generic openai-key --from-literal=OPENAI_API_KEY=sk-proj-y
 
 **Tip**: Start with GPT-3.5-Turbo for development, upgrade to GPT-4 if needed.
 
-## 🐛 Troubleshooting
+## 🐛 Troubleshooting (Common Issues)
 
-### Port Already in Use
+### ❌ "Port Already in Use" Error
+
+**Problem:** Docker can't start because ports 3000, 8000, or 80 are already being used.
+
+**Solution:**
 ```bash
-# Find process using port
+# Find what's using the ports
 lsof -i :3000
 lsof -i :8000
+lsof -i :80
 
-# Kill process
+# Kill the process (replace <PID> with the actual process ID)
 kill -9 <PID>
 
-# Or change port in docker-compose.yml
+# Or change ports in docker-compose.yml
 ```
 
-### API Connection Errors
-- Check backend is running: `docker-compose logs backend`
-- Verify API URL in frontend `.env`
-- Check CORS settings in `backend/app/main.py`
-- Ensure OpenAI API key is valid
+### ❌ "Cannot find module 'katex'" Error
 
-### Docker Issues
+**Problem:** Frontend dependencies not installed properly.
+
+**Solution:**
 ```bash
-# Clear all Docker data
+# Rebuild the containers from scratch
+docker compose down
+docker compose up --build
+```
+
+### ❌ API Connection Errors / "Network Error"
+
+**Problem:** Frontend can't connect to backend.
+
+**Solution:**
+```bash
+# 1. Check if backend is running
+docker compose logs backend
+
+# 2. Verify backend URL in frontend/.env
+cat frontend/.env
+# Should have: REACT_APP_API_URL=http://localhost:8000/api
+
+# 3. Restart all services
+docker compose restart
+```
+
+### ❌ "OpenAI API Key Invalid" Error
+
+**Problem:** Your API key is missing or incorrect.
+
+**Solution:**
+```bash
+# 1. Check your backend/.env file
+cat backend/.env
+
+# 2. Make sure it starts with sk-proj-
+# 3. No spaces or quotes around the key
+OPENAI_API_KEY=sk-proj-your-key-here
+
+# 4. Restart backend
+docker compose restart backend
+```
+
+### ❌ Docker Issues / Container Won't Start
+
+**Problem:** Docker containers fail to build or start.
+
+**Solution:**
+```bash
+# Stop everything
+docker compose down
+
+# Remove all containers, networks, and volumes
+docker compose down -v
+
+# Clear Docker cache
 docker system prune -a
 
 # Rebuild from scratch
-docker-compose down -v
-docker-compose up --build
+docker compose up --build
 ```
 
-### Out of Memory
+### ❌ "Out of Memory" Error
+
+**Problem:** Docker doesn't have enough memory allocated.
+
+**Solution:**
+1. Open **Docker Desktop**
+2. Go to **Settings** → **Resources**
+3. Increase **Memory** to at least 4 GB
+4. Click **Apply & Restart**
+5. Run `docker compose up --build` again
+
+### ❌ Frontend Shows "Blank Page"
+
+**Problem:** React app didn't compile correctly.
+
+**Solution:**
 ```bash
-# Increase Docker memory limit in Docker Desktop settings
-# Or use: docker run -m 2g
+# Check frontend logs
+docker compose logs frontend
+
+# Look for compilation errors
+# If you see errors, rebuild:
+docker compose down
+docker compose up --build
 ```
+
+### ❌ "Connection Refused" on http://localhost:3000
+
+**Problem:** Frontend container not running or not ready yet.
+
+**Solution:**
+```bash
+# 1. Wait 1-2 minutes for frontend to compile
+# 2. Check if container is running
+docker compose ps
+
+# 3. View frontend logs
+docker compose logs -f frontend
+
+# 4. Wait for "Compiled successfully!" message
+```
+
+### ❌ PDF Upload Fails
+
+**Problem:** File too large or backend not processing.
+
+**Solution:**
+```bash
+# 1. Check file size (max 50MB)
+# 2. Check backend logs
+docker compose logs backend
+
+# 3. Make sure uploads directory exists
+docker compose exec backend mkdir -p /app/uploads
+
+# 4. Restart backend
+docker compose restart backend
+```
+
+### 🆘 Still Having Issues?
+
+1. **Check the logs:**
+   ```bash
+   docker compose logs -f
+   ```
+
+2. **Restart everything:**
+   ```bash
+   docker compose down
+   docker compose up --build
+   ```
+
+3. **Open an issue on GitHub:**
+   https://github.com/farahaljohani/techreport-assistant/issues
+
+---
 
 ## 📈 Performance Tips
 
