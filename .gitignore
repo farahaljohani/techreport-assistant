@@ -136,7 +136,9 @@ celerybeat.pid
 
 # Environments
 .env
-.envrc
+.env.local
+.env.*.local
+.env.prod
 .venv
 env/
 venv/
@@ -201,7 +203,73 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.prod
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+*.egg
+.venv
+venv/
+env/
+ENV/
+build/
+dist/
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Builds
+build/
+dist/
+*.o
+*.a
+*.so
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+logs/
+
+# Uploads
+uploads/
+backend/uploads/
+
+# Docker
+.dockerignore
+.docker
+
+# IDE cache
+.cache
+.pytest_cache
+.coverage
+.mypy_cache
+
+# Testing
+coverage/
+htmlcov/

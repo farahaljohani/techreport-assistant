@@ -1,0 +1,149 @@
+.glossary-panel {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f9f9f9;
+}
+
+.glossary-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 2px solid #0066cc;
+  padding-bottom: 0.5rem;
+}
+
+.glossary-input {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 4px;
+}
+
+.selected-term {
+  margin: 0 0 0.5rem 0;
+  font-size: 12px;
+  color: #0066cc;
+  font-weight: 600;
+}
+
+.define-btn {
+  width: 100%;
+  padding: 0.6rem;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.define-btn:hover:not(:disabled) {
+  background: #388e3c;
+}
+
+.define-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.definition-result {
+  padding: 0.75rem;
+  background: #e8f5e9;
+  border-left: 3px solid #4caf50;
+  border-radius: 3px;
+  margin-top: 0.5rem;
+}
+
+.definition-result p {
+  margin: 0 0 0.5rem 0;
+  font-size: 12px;
+  color: #1b5e20;
+  line-height: 1.5;
+}
+
+.add-glossary-btn {
+  width: 100%;
+  padding: 0.5rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.add-glossary-btn:hover {
+  background: #0052a3;
+}
+
+.glossary-list {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.glossary-list h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 12px;
+  color: #333;
+}
+
+.terms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.glossary-entry {
+  padding: 0.6rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid #0066cc;
+}
+
+.glossary-entry:hover {
+  background: #f5f5f5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.glossary-entry.selected {
+  background: #e3f2fd;
+  border-left-color: #0052a3;
+}
+
+.glossary-entry strong {
+  display: block;
+  font-size: 12px;
+  color: #0066cc;
+  margin-bottom: 0.25rem;
+}
+
+.term-definition {
+  font-size: 11px;
+  color: #666;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e0e0e0;
+  line-height: 1.4;
+}
+
+.term-definition p {
+  margin: 0;
+}
+
+.hint {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem 0;
+}

@@ -1,0 +1,121 @@
+.ask-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: transparent;
+}
+
+.ask-box-header {
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #238636;
+}
+
+.ask-box-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 14px;
+  color: #f0f6fc;
+  font-weight: 700;
+}
+
+.doc-context {
+  margin: 0;
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.doc-context strong {
+  color: #58a6ff;
+  font-weight: 600;
+}
+
+/* Conversation History */
+.conversation-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 1rem;
+}
+
+.message {
+  display: flex;
+  gap: 0.5rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message.assistant {
+  justify-content: flex-start;
+}
+
+.message-badge {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.message-content {
+  padding: 0.75rem;
+  border-radius: 6px;
+  max-width: 85%;
+  word-wrap: break-word;
+}
+
+.message.user .message-content {
+  background: #238636;
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.message.assistant .message-content {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-bottom-left-radius: 2px;
+  color: #c9d1d9;
+}
+
+.message-content p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Scrollbar */
+.conversation-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.conversation-history::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+.conversation-history::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+.conversation-history::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+.ask-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ask-box::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+.ask-box::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+.ask-box::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: techreport-backend-prod
+    expose:
+      - "8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - BACKEND_URL=https://api.techreport.com
+      - FRONTEND_URL=https://techreport.com
+      - ENVIRONMENT=production
+    volumes:
+      - backend_uploads_prod:/app/uploads
+    command: gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    networks:
+      - techreport-network-prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: techreport-frontend-prod
+    expose:
+      - "3000"
+    environment:
+      - REACT_APP_API_URL=https://api.techreport.com/api
+    networks:
+      - techreport-network-prod
+    restart: always
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: techreport-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - techreport-network-prod
+    depends_on:
+      - backend
+      - frontend
+    restart: always
+
+volumes:
+  backend_uploads_prod:
+
+networks:
+  techreport-network-prod:
+    driver: bridge

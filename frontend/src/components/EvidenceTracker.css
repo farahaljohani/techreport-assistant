@@ -1,0 +1,127 @@
+.evidence-tracker {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f9f9f9;
+}
+
+.evidence-tracker h3 {
+  margin: 0 0 1rem 0;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 2px solid #ff9800;
+  padding-bottom: 0.5rem;
+}
+
+.evidence-input {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 4px;
+}
+
+.claim-text {
+  margin: 0 0 0.5rem 0;
+  font-size: 12px;
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.source-btn {
+  width: 100%;
+  padding: 0.6rem;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.source-btn:hover:not(:disabled) {
+  background: #f57c00;
+}
+
+.source-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sources-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.source-item {
+  border: 1px solid #ffe0b2;
+  border-radius: 4px;
+  background: #fff8e1;
+  padding: 0.75rem;
+}
+
+.source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.source-type {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: #ff9800;
+  color: white;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.source-location {
+  font-size: 10px;
+  color: #999;
+}
+
+.source-context {
+  padding: 0.5rem;
+  background: white;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.source-context p {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.jump-to-btn {
+  width: 100%;
+  padding: 0.5rem;
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.jump-to-btn:hover {
+  background: #f57c00;
+}
+
+.hint {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem 0;
+}
