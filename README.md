@@ -219,20 +219,132 @@ cp /etc/letsencrypt/live/yourdomain.com/privkey.pem certs/private.key
 - **Heroku**: Use Docker buildpack
 - **Render**: Connect GitHub → Deploy
 
-## 📊 Environment Variables
+## � Security & API Keys
 
-### Backend
-```
-OPENAI_API_KEY=sk-...              # OpenAI API key (required)
-BACKEND_URL=http://localhost:8000  # Backend URL
-FRONTEND_URL=http://localhost:3000 # Frontend URL
-ENVIRONMENT=development            # development/production
+### ⚠️ IMPORTANT: Protecting Your OpenAI API Key
+
+**Your OpenAI API key is sensitive and must NEVER be committed to Git!**
+
+### ✅ What's Already Protected
+
+This project uses environment variables to keep your API key safe:
+
+1. **`.env` files are in `.gitignore`** - Won't be committed
+2. **Code uses `os.getenv()`** - No hardcoded credentials
+3. **Only `.env.example` is in repo** - Templates only
+
+### 🚀 Initial Setup
+
+**For new team members or deployment:**
+
+```bash
+# 1. Copy the environment template
+cp backend/.env.example backend/.env
+
+# 2. Get your OpenAI API key from:
+# https://platform.openai.com/api-keys
+
+# 3. Edit backend/.env and add your key
+nano backend/.env
+
+# Add this line with your actual key:
+OPENAI_API_KEY=sk-proj-your-actual-key-here
 ```
 
-### Frontend
+### 🚨 If You Accidentally Commit Your API Key
+
+**IMMEDIATELY do these steps:**
+
+1. **Revoke the exposed key** at https://platform.openai.com/api-keys
+2. **Generate a new API key**
+3. **Update your local `.env` file** with the new key
+4. **Remove from Git history:**
+   ```bash
+   git filter-branch --force --index-filter \
+     "git rm --cached --ignore-unmatch backend/.env" \
+     --prune-empty --tag-name-filter cat -- --all
+   
+   git push origin --force --all
+   ```
+
+### 🔒 Security Best Practices
+
+- ✅ **DO**: Use environment variables (`.env` files)
+- ✅ **DO**: Add `.env` to `.gitignore`
+- ✅ **DO**: Share `.env.example` templates (without real keys)
+- ✅ **DO**: Rotate API keys periodically
+- ✅ **DO**: Use different keys for dev/staging/production
+- ❌ **DON'T**: Hardcode API keys in code
+- ❌ **DON'T**: Commit `.env` files to Git
+- ❌ **DON'T**: Share API keys in chat/email
+- ❌ **DON'T**: Push keys to public repositories
+
+### 🔍 Verify Your Setup is Secure
+
+```bash
+# Check if .env is ignored
+git status | grep ".env"
+# Should return nothing (file is ignored)
+
+# Verify no keys in git history
+git log --all --full-history --source --oneline -- "**/.env"
+# Should return nothing
+
+# Check last commit for keys
+git show HEAD | grep -i "sk-proj"
+# Should return nothing
 ```
-REACT_APP_API_URL=http://localhost:8000/api  # Backend API URL
+
+### 📋 Environment Variables Reference
+
+#### Backend (`.env`)
+```bash
+# Required - Get from https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-proj-your-key-here
+
+# Optional - Defaults work for local development
+BACKEND_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+ENVIRONMENT=development
+OPENAI_MODEL=gpt-3.5-turbo
 ```
+
+#### Frontend (`.env`)
+```bash
+# Backend API endpoint
+REACT_APP_API_URL=http://localhost:8000/api
+```
+
+### 🌐 Production Deployment Security
+
+For production environments:
+
+```bash
+# Use environment variables from your hosting platform
+# Examples:
+
+# Heroku
+heroku config:set OPENAI_API_KEY=sk-proj-your-key
+
+# AWS
+aws ssm put-parameter --name OPENAI_API_KEY --value "sk-proj-your-key" --type SecureString
+
+# Docker Swarm/Kubernetes
+kubectl create secret generic openai-key --from-literal=OPENAI_API_KEY=sk-proj-your-key
+
+# DigitalOcean App Platform
+# Add via dashboard: Settings → Environment Variables
+```
+
+### 💰 OpenAI API Usage & Costs
+
+- **Monitor usage**: https://platform.openai.com/usage
+- **Set spending limits**: https://platform.openai.com/account/billing/limits
+- **Model costs** (as of Dec 2024):
+  - GPT-3.5-Turbo: $0.0015 per 1K input tokens, $0.002 per 1K output tokens
+  - GPT-4: Higher cost, more accurate responses
+
+**Tip**: Start with GPT-3.5-Turbo for development, upgrade to GPT-4 if needed.
 
 ## 🐛 Troubleshooting
 
