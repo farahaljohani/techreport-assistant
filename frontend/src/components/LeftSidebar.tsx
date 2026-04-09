@@ -4,10 +4,11 @@ import './LeftSidebar.css';
 interface LeftSidebarProps {
   reportData: any;
   equations: any[];
+  equationsLoading?: boolean;
   glossary: Map<string, string>;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations, glossary }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations, equationsLoading = false, glossary }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['outline']));
   const [searchTerm, setSearchTerm] = useState('');
   const [equationSearch, setEquationSearch] = useState('');
@@ -164,7 +165,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
           className="section-header"
           onClick={() => toggleSection('statistics')}
         >
-          <span className="section-title">� Statistics</span>
+          <span className="section-title">📊 Statistics</span>
           <span className={`arrow ${expandedSections.has('statistics') ? 'open' : ''}`}>▼</span>
         </button>
         {expandedSections.has('statistics') && (
@@ -215,7 +216,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
           onClick={() => toggleSection('equations')}
         >
           <span className="section-title">📐 Equations</span>
-          <span className="badge badge-green">{equations.length}</span>
+          {equationsLoading
+            ? <span className="badge badge-blue" style={{ fontSize: '10px' }}>⏳ detecting…</span>
+            : <span className="badge badge-green">{equations.length}</span>
+          }
         </button>
         {expandedSections.has('equations') && (
           <div className="section-content equations-content">
@@ -239,7 +243,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
               </div>
             )}
 
-            {equations.length === 0 ? (
+            {equationsLoading ? (
+              <div className="empty-state">
+                <span className="empty-icon" style={{ fontSize: '28px', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⚙️</span>
+                <p>Detecting equations…</p>
+                <small>Analysing document with AI</small>
+              </div>
+            ) : equations.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon">📐</span>
                 <p>No equations detected</p>
@@ -261,7 +271,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
                   >
                     <div className="equation-header">
                       <span className="eq-number">#{i + 1}</span>
-                      <button className="btn-copy-eq" title="Copy equation">
+                      <button 
+                        className="btn-copy-eq" 
+                        title="Copy equation"
+                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(eq.equation); }}
+                      >
                         📋
                       </button>
                     </div>
@@ -359,7 +373,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
                   <div key={term} className="glossary-card-new">
                     <div className="term-header">
                       <h4 className="term-title">{term}</h4>
-                      <button className="btn-copy-term" title="Copy term">
+                      <button 
+                        className="btn-copy-term" 
+                        title="Copy definition"
+                        onClick={() => navigator.clipboard.writeText(`${term}: ${def}`)}
+                      >
                         📋
                       </button>
                     </div>
@@ -378,17 +396,46 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
       {/* Quick Actions Section */}
       <div className="sidebar-footer">
         <div className="quick-actions">
-          <button className="action-btn" title="Export Data">
+          <button 
+            className="action-btn" 
+            title="Copy all equations to clipboard"
+            onClick={() => {
+              if (equations.length === 0) return;
+              const text = equations.map((eq, i) => `#${i+1}: ${eq.equation}`).join('\n');
+              navigator.clipboard.writeText(text);
+            }}
+            disabled={equations.length === 0}
+          >
+            <span className="action-icon">📐</span>
+            <span className="action-label">Copy Eqs</span>
+          </button>
+          <button 
+            className="action-btn" 
+            title="Export glossary as text"
+            onClick={() => {
+              if (glossary.size === 0) return;
+              const text = Array.from(glossary.entries()).map(([t, d]) => `${t}: ${d}`).join('\n\n');
+              const blob = new Blob([text], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'glossary.txt'; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            disabled={glossary.size === 0}
+          >
             <span className="action-icon">📥</span>
             <span className="action-label">Export</span>
           </button>
-          <button className="action-btn" title="Share Document">
-            <span className="action-icon">🔗</span>
-            <span className="action-label">Share</span>
-          </button>
-          <button className="action-btn" title="Settings">
-            <span className="action-icon">⚙️</span>
-            <span className="action-label">Settings</span>
+          <button 
+            className="action-btn" 
+            title="Copy document info to clipboard"
+            onClick={() => {
+              const info = `File: ${reportData?.filename}\nPages: ${reportData?.total_pages}\nWords: ${stats.wordCount}\nEquations: ${equations.length}\nTerms: ${glossary.size}`;
+              navigator.clipboard.writeText(info);
+            }}
+          >
+            <span className="action-icon">📋</span>
+            <span className="action-label">Copy Info</span>
           </button>
         </div>
       </div>

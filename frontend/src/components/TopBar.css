@@ -335,6 +335,53 @@
   background: #79c0ff;
 }
 
+.topbar-spacer {
+  flex: 1;
+}
+
+.home-btn {
+  padding: 0.4rem 0.875rem;
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  border-radius: 6px;
+  color: #58a6ff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.home-btn:hover {
+  background: rgba(88, 166, 255, 0.18);
+  border-color: #58a6ff;
+  transform: translateX(-2px);
+}
+
+.topbar-doc-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.topbar-doc-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.topbar-doc-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f0f6fc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 380px;
+}
+
 /* Enhanced Actions Section */
 .topbar-actions {
   display: flex;

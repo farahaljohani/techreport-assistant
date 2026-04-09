@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { reportService } from '../../services/api';
 import './UnitConverter.css';
 
@@ -41,7 +41,7 @@ export const UnitConverterTool: React.FC = () => {
 
   const handleConvert = async () => {
     if (!value) {
-      alert('Please enter a value');
+      setResult('⚠️ Please enter a value');
       return;
     }
     setLoading(true);

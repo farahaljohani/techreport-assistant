@@ -20,34 +20,11 @@
 }
 
 .tools-header {
-  padding: 1.5rem 1.25rem;
-  border-bottom: 2px solid #58a6ff;
-  background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
-  color: white;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #30363d;
+  background: #161b22;
+  color: #c9d1d9;
   flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
-}
-
-.tools-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
 }
 
 .header-top-row {
@@ -67,14 +44,15 @@
 }
 
 .tools-header h3 {
-  font-size: 18px;
-  color: white;
+  font-size: 13px;
+  color: #c9d1d9;
   margin: 0;
-  font-weight: 800;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tools-badges {
@@ -84,24 +62,25 @@
 }
 
 .tool-badge {
-  padding: 0.25rem 0.6rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 12px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #30363d;
 }
 
 .badge-active {
-  background: rgba(35, 134, 54, 0.25);
+  background: rgba(35, 134, 54, 0.1);
   color: #7ee787;
-  border-color: rgba(126, 231, 135, 0.4);
+  border-color: rgba(63, 185, 80, 0.3);
 }
 
 .badge-expanded {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: rgba(88, 166, 255, 0.1);
+  color: #58a6ff;
+  border-color: rgba(88, 166, 255, 0.25);
 }
 
 .header-actions-row {
@@ -110,29 +89,27 @@
 }
 
 .btn-icon-tools {
-  padding: 0.4rem 0.6rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.35rem 0.55rem;
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid #30363d;
   border-radius: 4px;
-  color: white;
+  color: #8b949e;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.2s ease;
 }
 
 .btn-icon-tools:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+  background: rgba(88, 166, 255, 0.15);
+  border-color: #58a6ff;
+  color: #58a6ff;
 }
 
 .header-subtitle {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  color: #6e7681;
   margin: 0;
   font-weight: 500;
-  position: relative;
-  z-index: 1;
 }
 
 /* Accordion Container */
@@ -441,31 +418,7 @@
   box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
 }
 
-/* Scrollbar styling */
-.tools-panel::-webkit-scrollbar,
-.accordion-container::-webkit-scrollbar {
-  width: 10px;
-}
-
-.tools-panel::-webkit-scrollbar-track,
-.accordion-container::-webkit-scrollbar-track {
-  background: #0d1117;
-  border-left: 1px solid #21262d;
-}
-
-.tools-panel::-webkit-scrollbar-thumb,
-.accordion-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #30363d 0%, #21262d 100%);
-  border-radius: 5px;
-  border: 2px solid #0d1117;
-  transition: all 0.3s ease;
-}
-
-.tools-panel::-webkit-scrollbar-thumb:hover,
-.accordion-container::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #58a6ff 0%, #1f6feb 100%);
-  box-shadow: 0 0 8px rgba(88, 166, 255, 0.5);
-}
+/* Scrollbar — inherits global 6px style */
 
 /* Empty State Enhancements */
 .tool-hint:empty::before {

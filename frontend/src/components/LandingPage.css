@@ -207,113 +207,43 @@
   margin: 0 auto;
 }
 
-/* Quick Stats - Carousel */
-.quick-stats-container {
-  width: 100%;
-  animation: slideInDown 1.4s ease-out 0.4s both;
-  margin-top: 2rem;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-.quick-stats-label {
-  text-align: center;
-  font-size: 14px;
-  font-weight: 400;
-  color: #8b949e;
-  margin-bottom: 2rem;
-  text-transform: none;
-  letter-spacing: 0.3px;
-  background: transparent;
-  border: none;
-  opacity: 0.8;
-}
-
-.quick-stats-wrapper {
-  position: relative;
-  overflow: hidden;
-  background: transparent;
-  padding: 1.5rem 0;
+/* Static hero stats row */
+.hero-stats-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  gap: 0;
+  background: rgba(88, 166, 255, 0.05);
+  border: 1px solid rgba(88, 166, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  max-width: 600px;
   margin: 0 auto;
-  border: none;
-  box-shadow: none;
-  background-color: transparent !important;
 }
 
-.quick-stats-wrapper::before,
-.quick-stats-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 200px;
-  pointer-events: none;
-  z-index: 2;
-  display: none;
-}
-
-.quick-stats-wrapper::before {
-  left: 0;
-  background: linear-gradient(to right, #0d1117 0%, transparent 100%);
-}
-
-.quick-stats-wrapper::after {
-  right: 0;
-  background: linear-gradient(to left, #0d1117 0%, transparent 100%);
-}
-
-.quick-stats-carousel {
-  display: flex;
-  gap: 1.5rem;
-  animation: scroll 30s linear infinite;
-  padding: 0.5rem 0;
-  width: fit-content;
-  animation-play-state: running;
-  align-items: center;
-}
-
-.quick-stats-carousel.paused {
-  animation-play-state: paused;
-}
-
-.stat-item {
+.hero-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: #c9d1d9;
-  font-size: 13px;
+  gap: 0.35rem;
+  padding: 0 1.5rem;
+}
+
+.hero-stat-value {
+  font-size: 22px;
+}
+
+.hero-stat-label {
+  font-size: 12px;
   font-weight: 600;
+  color: #8b949e;
   white-space: nowrap;
-  flex-shrink: 0;
-  padding: 0.875rem 1.25rem;
-  background: transparent;
-  border: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
 }
 
-.stat-item:hover {
-  background: transparent !important;
-  transform: scale(1.05);
-  color: #58a6ff;
-}
-
-.stat-icon {
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel-controls {
-  display: none;
+.hero-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(88, 166, 255, 0.15);
 }
 
 .carousel-pause-btn {
@@ -356,18 +286,17 @@
 .section-header {
   text-align: center;
   margin-bottom: 4rem;
-  animation: slideInUp 0.8s ease-out;
   position: relative;
   display: inline-block;
   width: 100%;
   padding: 2.5rem 2rem;
-  background: linear-gradient(135deg, #161b22 0%, rgba(120, 81, 169, 0.08) 100%);
-  border: 2px solid #7851a9;
+  background: rgba(88, 166, 255, 0.04);
+  border: 1px solid rgba(88, 166, 255, 0.15);
   border-radius: 16px;
 }
 
 .section-header:hover {
-  border-color: #a855f7;
+  border-color: rgba(88, 166, 255, 0.3);
 }
 
 .section-header h2 {
@@ -401,7 +330,6 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  animation: slideInUp 0.8s ease-out;
 }
 
 .feature-card::before {

@@ -1,15 +1,16 @@
 .isa-calculator {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
   padding: 1rem;
-  background: #f9f9f9;
+  background: #161b22;
 }
 
 .isa-calculator h3 {
   margin: 0 0 1rem 0;
-  font-size: 14px;
-  color: #333;
-  border-bottom: 2px solid #2196f3;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
   padding-bottom: 0.5rem;
 }
 
@@ -21,32 +22,41 @@
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: #2196f3;
-  margin-bottom: 0.25rem;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
 }
 
 .isa-input {
   width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #30363d;
+  border-radius: 6px;
   font-size: 12px;
-  font-family: monospace;
+  font-family: 'Courier New', monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  transition: all 0.2s;
 }
 
 .isa-input:focus {
   outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+.isa-input::placeholder {
+  color: #6e7681;
 }
 
 .isa-btn {
   width: 100%;
-  padding: 0.6rem;
-  background: #2196f3;
+  padding: 0.65rem;
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -55,51 +65,56 @@
 }
 
 .isa-btn:hover {
-  background: #1976d2;
+  background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(35, 134, 54, 0.3);
 }
 
 .isa-results {
   padding: 0.75rem;
-  background: #e3f2fd;
-  border-left: 3px solid #2196f3;
-  border-radius: 3px;
+  background: rgba(35, 134, 54, 0.08);
+  border-left: 3px solid #3fb950;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
 .result-item {
-  padding: 0.5rem;
-  background: white;
-  border-radius: 3px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(13, 17, 23, 0.6);
+  border: 1px solid #30363d;
+  border-radius: 4px;
 }
 
 .result-item label {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: #2196f3;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-bottom: 0.25rem;
 }
 
 .result-item p {
   margin: 0;
   font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  font-family: monospace;
+  font-weight: 700;
+  color: #7ee787;
+  font-family: 'Courier New', monospace;
 }
 
 .result-item small {
   display: block;
   font-size: 10px;
-  color: #999;
+  color: #6e7681;
   margin-top: 0.2rem;
 }
 
 .isa-note {
   font-size: 10px;
-  color: #999;
+  color: #6e7681;
   text-align: center;
   margin: 0.75rem 0 0 0;
   font-style: italic;

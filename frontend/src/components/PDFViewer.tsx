@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -19,7 +19,21 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [rotation, setRotation] = useState(0);
-  const [fitToWidth, setFitToWidth] = useState(false);
+  const [fitToWidth, setFitToWidth] = useState(true);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth - 32);
+      }
+    };
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Keyboard shortcuts - MUST be at the top before any returns
   React.useEffect(() => {
@@ -105,28 +119,16 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
 
   return (
     <div className="pdf-viewer">
-      {/* Enhanced Header with Document Info */}
-      <div className="pdf-header">
-        <div className="doc-info">
-          <span className="doc-icon">📄</span>
-          <div className="doc-details">
-            <h3 className="doc-title">{reportData?.filename || 'PDF Document'}</h3>
-            <p className="doc-meta">
-              {numPages ? `${numPages} pages` : 'Loading...'} • {(reportData?.file_size / 1024).toFixed(2)} KB
-            </p>
-          </div>
+      {!loading && numPages && (
+        <div className="progress-indicator">
+          <div
+            className="progress-bar"
+            style={{ width: `${(pageNumber / numPages) * 100}%` }}
+          />
         </div>
-        {!loading && numPages && (
-          <div className="progress-indicator">
-            <div 
-              className="progress-bar" 
-              style={{ width: `${(pageNumber / numPages) * 100}%` }}
-            />
-          </div>
-        )}
-      </div>
+      )}
 
-      {/* Enhanced Controls */}
+      {/* Controls */}
       <div className="pdf-controls">
         <div className="control-group navigation-group">
           <button 
@@ -268,7 +270,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
       </div>
 
       {/* PDF Container */}
-      <div className="pdf-container" onMouseUp={handleTextSelection}>
+      <div className="pdf-container" ref={containerRef} onMouseUp={handleTextSelection}>
         {loading && (
           <div className="loading-state">
             <div className="loading-spinner" />
@@ -291,9 +293,11 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
           >
             {numPages && (
               <div className="page-wrapper">
-                <Page 
-                  pageNumber={pageNumber} 
-                  scale={fitToWidth ? 1.5 : scale}
+                <Page
+                  pageNumber={pageNumber}
+                  {...(fitToWidth && containerWidth > 0
+                    ? { width: containerWidth }
+                    : { scale })}
                   rotate={rotation}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
@@ -305,12 +309,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
         )}
       </div>
 
-      {/* Keyboard Shortcuts Hint */}
-      <div className="shortcuts-hint">
-        <span className="hint-item">← → Navigate</span>
-        <span className="hint-item">Ctrl + / - Zoom</span>
-        <span className="hint-item">Ctrl + P Print</span>
-      </div>
     </div>
   );
 };
