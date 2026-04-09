@@ -14,98 +14,90 @@ export const Layout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [usePDFViewer, setUsePDFViewer] = useState(true);
   const [glossary, setGlossary] = useState<Map<string, string>>(new Map());
-  const [metadata, setMetadata] = useState<any>(null);
   const [equations, setEquations] = useState<any[]>([]);
-  
+  const [equationsLoading, setEquationsLoading] = useState(false);
+
+  // Floating search state
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   // Resizable sidebar widths
   const [leftWidth, setLeftWidth] = useState(320);
   const [rightWidth, setRightWidth] = useState(380);
   const [isDraggingLeft, setIsDraggingLeft] = useState(false);
   const [isDraggingRight, setIsDraggingRight] = useState(false);
-  
+
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleReportUpload = (data: any) => {
-    console.log('Report data received:', data);
     setReportData(data);
     setSelectedText('');
-    // Extract metadata
-    extractMetadata(data);
-    // Extract equations
+    setSearchQuery('');
+    setSearchInput('');
     extractEquations(data);
   };
 
-  const extractMetadata = (data: any) => {
-    // Auto-detect metadata from PDF
-    const meta = {
-      title: data.filename.replace('.pdf', ''),
-      authors: 'Auto-detected',
-      keywords: [],
-      uploadDate: data.upload_date,
-      pageCount: data.total_pages
-    };
-    setMetadata(meta);
-  };
-
   const extractEquations = async (data: any) => {
+    setEquationsLoading(true);
     try {
-      // Use backend equation detection for better results
       const result = await reportService.detectEquations(data.text);
-      
       if (result && result.equations) {
         const formattedEqs = result.equations.map((eq: any) => ({
           ...eq,
           variables: extractVariables(eq.equation)
         }));
-        
         setEquations(formattedEqs);
-        console.log(`✅ Detected ${formattedEqs.length} equations using backend service`);
       }
-    } catch (error) {
-      console.error('Backend equation detection failed, using fallback:', error);
-      
-      // Fallback: Client-side detection with improved patterns
-      const patterns = [
-        // LaTeX inline: $...$
-        /\$([^\$]+)\$/g,
-        // Standard equations: x = ...
-        /[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\n.!?;:]{3,80}/g,
-        // Math symbols
-        /[^\n]*[∫∑∏√±≈≤≥∞∂∇⊗⊕∈∉∀∃][^\n]{5,100}/g,
-      ];
-      
+    } catch {
+      // Fallback: tighter client-side patterns (fewer false positives)
+      const text: string = data.text;
+      const found: Set<string> = new Set();
       const detectedEquations: any[] = [];
-      let id = 0;
-      
-      patterns.forEach(pattern => {
-        const matches = data.text.match(pattern) || [];
-        matches.forEach((eq: string) => {
-          const cleanEq = eq.replace(/\s+/g, ' ').trim();
-          if (cleanEq.length > 3) {
+
+      const patterns: { re: RegExp; fmt: string }[] = [
+        { re: /\$[^\$\n]{2,80}\$/g, fmt: 'latex' },
+        { re: /\\\([^\)]{2,100}\\\)/g, fmt: 'latex' },
+        { re: /[a-zA-Z][a-zA-Z0-9_]{0,6}\s*=\s*[0-9\-][^\n.;]{1,60}/g, fmt: 'numeric' },
+        { re: /[^\n]*[∫∑∏√±≈≤≥∞∂∇][^\n]{4,80}/g, fmt: 'symbolic' },
+      ];
+
+      patterns.forEach(({ re, fmt }) => {
+        const matches = text.match(re) || [];
+        matches.forEach(m => {
+          const clean = m.replace(/\s+/g, ' ').trim();
+          if (clean.length > 4 && !found.has(clean.toLowerCase())) {
+            found.add(clean.toLowerCase());
             detectedEquations.push({
-              id: id++,
-              equation: cleanEq,
-              format: pattern === patterns[0] ? 'latex' : 'text',
-              variables: extractVariables(cleanEq)
+              id: detectedEquations.length,
+              equation: clean,
+              format: fmt,
+              variables: extractVariables(clean)
             });
           }
         });
       });
-      
-      // Remove duplicates
-      const uniqueEqs = Array.from(new Map(
-        detectedEquations.map((eq: any) => [eq.equation.toLowerCase(), eq])
-      ).values());
-      
-      setEquations(uniqueEqs);
-      console.log(`⚠️ Using fallback: Found ${uniqueEqs.length} equations`);
+
+      setEquations(detectedEquations);
+    } finally {
+      setEquationsLoading(false);
     }
   };
 
   const extractVariables = (equation: string): string[] => {
-    const varRegex = /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g;
-    return [...new Set(equation.match(varRegex) || [])];
+    const stopWords = new Set(['the', 'of', 'in', 'and', 'or', 'for', 'is', 'at', 'by', 'an', 'to']);
+    const vars = equation.match(/\b[a-zA-Z][a-zA-Z0-9_]*\b/g) || [];
+    return [...new Set(vars.filter(v => v.length <= 6 && !stopWords.has(v.toLowerCase())))];
   };
+
+  // Jump to text in text view — used by Evidence Tracker
+  const handleJumpToText = useCallback((text: string) => {
+    const snippet = text.substring(0, 40);
+    setUsePDFViewer(false);
+    setSearchQuery(snippet);
+    setSearchInput(snippet);
+    setShowSearch(true);
+  }, []);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -117,49 +109,56 @@ export const Layout: React.FC = () => {
 
   const addToGlossary = useCallback((term: string, definition: string) => {
     setGlossary(prev => {
-      const newGlossary = new Map(prev);
-      newGlossary.set(term.toLowerCase(), definition);
-      return newGlossary;
+      const next = new Map(prev);
+      next.set(term.toLowerCase(), definition);
+      return next;
     });
   }, []);
 
-  const handleMouseDownLeft = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingLeft(true);
+  const openSearch = useCallback(() => {
+    setUsePDFViewer(false);
+    setShowSearch(true);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
   }, []);
 
-  const handleMouseDownRight = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDraggingRight(true);
+  const closeSearch = useCallback(() => {
+    setShowSearch(false);
+    setSearchQuery('');
+    setSearchInput('');
   }, []);
+
+  // Ctrl/Cmd + F opens floating search
+  useEffect(() => {
+    if (!reportData) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        openSearch();
+      }
+      if (e.key === 'Escape' && showSearch) closeSearch();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [reportData, showSearch, openSearch, closeSearch]);
+
+  // Sidebar resize
+  const handleMouseDownLeft = useCallback((e: React.MouseEvent) => { e.preventDefault(); setIsDraggingLeft(true); }, []);
+  const handleMouseDownRight = useCallback((e: React.MouseEvent) => { e.preventDefault(); setIsDraggingRight(true); }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingLeft) {
-        const newWidth = Math.max(200, Math.min(500, e.clientX));
-        setLeftWidth(newWidth);
-      }
-      if (isDraggingRight) {
-        const newWidth = Math.max(300, Math.min(600, window.innerWidth - e.clientX));
-        setRightWidth(newWidth);
-      }
+      if (isDraggingLeft) setLeftWidth(Math.max(200, Math.min(500, e.clientX)));
+      if (isDraggingRight) setRightWidth(Math.max(300, Math.min(600, window.innerWidth - e.clientX)));
     };
-
     const handleMouseUp = () => {
       setIsDraggingLeft(false);
       setIsDraggingRight(false);
-      
-      // Clear any pending timeouts
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
+      if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
     };
-
     if (isDraggingLeft || isDraggingRight) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -167,105 +166,134 @@ export const Layout: React.FC = () => {
   }, [isDraggingLeft, isDraggingRight]);
 
   const handleUploadClick = () => {
-    // Trigger file input
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    fileInput?.click();
+    (document.querySelector('input[type="file"]') as HTMLInputElement)?.click();
   };
 
-  // Show landing page if no report
+  const handleGoHome = () => {
+    setReportData(null);
+    setSelectedText('');
+    setSearchQuery('');
+    setSearchInput('');
+    setShowSearch(false);
+    setGlossary(new Map());
+    setEquations([]);
+  };
+
   if (!reportData) {
     return (
       <div className="layout">
-        <TopBar 
-          onReportUpload={handleReportUpload} 
-          onSearch={handleSearch}
-          reportData={reportData}
-        />
+        <TopBar onReportUpload={handleReportUpload} onSearch={handleSearch} reportData={reportData} />
         <LandingPage onUploadClick={handleUploadClick} />
       </div>
     );
   }
 
-  // Show full app when report is loaded
   return (
     <div className="layout">
-      <TopBar 
-        onReportUpload={handleReportUpload} 
+      <TopBar
+        onReportUpload={handleReportUpload}
         onSearch={handleSearch}
+        onGoHome={handleGoHome}
         reportData={reportData}
+        equationsCount={equations.length}
       />
-      
-      {reportData && (
-        <div className="view-toggle">
+
+      <div className="view-toggle">
+        <button
+          className={`toggle-btn ${!usePDFViewer ? 'active' : ''}`}
+          onClick={() => setUsePDFViewer(false)}
+          title="View extracted text"
+        >
+          📝 Text View
+        </button>
+        <button
+          className={`toggle-btn ${usePDFViewer ? 'active' : ''}`}
+          onClick={() => setUsePDFViewer(true)}
+          title="View PDF document"
+        >
+          📄 PDF View
+        </button>
+        {/* Search button only visible in text view */}
+        {!usePDFViewer && (
           <button
-            className={`toggle-btn ${!usePDFViewer ? 'active' : ''}`}
-            onClick={() => setUsePDFViewer(false)}
-            title="View extracted text"
+            className={`toggle-btn search-toggle-btn ${showSearch ? 'active' : ''}`}
+            onClick={showSearch ? closeSearch : openSearch}
+            title="Search in document (Ctrl+F)"
           >
-            📝 Text View
+            🔍 Search
           </button>
-          <button
-            className={`toggle-btn ${usePDFViewer ? 'active' : ''}`}
-            onClick={() => setUsePDFViewer(true)}
-            title="View PDF document"
-          >
-            📄 PDF View
-          </button>
-        </div>
-      )}
-      
+        )}
+      </div>
+
       <div className="main-container">
         {/* Left Sidebar */}
-        {reportData && (
-          <>
-            <div className="left-sidebar-wrapper" style={{ width: `${leftWidth}px` }}>
-              <LeftSidebar reportData={reportData} equations={equations} glossary={glossary} />
-            </div>
-            <div 
-              className={`resize-handle left-handle ${isDraggingLeft ? 'dragging' : ''}`}
-              onMouseDown={handleMouseDownLeft}
-              title="Drag to resize left panel"
-            >
-              <div className="handle-dot"></div>
-            </div>
-          </>
-        )}
-        
-        {/* Center - Report Reader */}
+        <>
+          <div className="left-sidebar-wrapper" style={{ width: `${leftWidth}px` }}>
+            <LeftSidebar
+              reportData={reportData}
+              equations={equations}
+              equationsLoading={equationsLoading}
+              glossary={glossary}
+            />
+          </div>
+          <div
+            className={`resize-handle left-handle ${isDraggingLeft ? 'dragging' : ''}`}
+            onMouseDown={handleMouseDownLeft}
+            title="Drag to resize left panel"
+          >
+            <div className="handle-dot" />
+          </div>
+        </>
+
+        {/* Center */}
         <div className="center-content">
-          {usePDFViewer && reportData ? (
-            <PDFViewer 
-              reportData={reportData}
-              onTextSelect={handleTextSelect}
-            />
+          {/* Floating search overlay */}
+          {showSearch && !usePDFViewer && (
+            <div className="floating-search">
+              <span className="floating-search-icon">🔍</span>
+              <input
+                ref={searchInputRef}
+                className="floating-search-input"
+                type="text"
+                placeholder="Search in document…"
+                value={searchInput}
+                onChange={e => { setSearchInput(e.target.value); setSearchQuery(e.target.value); }}
+                onKeyDown={e => e.key === 'Escape' && closeSearch()}
+              />
+              {searchInput && (
+                <span className="floating-search-hint">↩ Enter · Esc to close</span>
+              )}
+              <button className="floating-search-close" onClick={closeSearch} title="Close (Esc)">✕</button>
+            </div>
+          )}
+
+          {usePDFViewer ? (
+            <PDFViewer reportData={reportData} onTextSelect={handleTextSelect} />
           ) : (
-            <ReportReader
-              reportData={reportData}
-              searchQuery={searchQuery}
-              onTextSelect={handleTextSelect}
-            />
+            <ReportReader reportData={reportData} searchQuery={searchQuery} onTextSelect={handleTextSelect} />
           )}
         </div>
-        
-        {/* Right Sidebar - Tools */}
-        {reportData && (
-          <>
-            <div 
-              className={`resize-handle right-handle ${isDraggingRight ? 'dragging' : ''}`}
-              onMouseDown={handleMouseDownRight}
-              title="Drag to resize right panel"
-            >
-              <div className="handle-dot"></div>
-            </div>
-            <div className="right-sidebar-wrapper" style={{ width: `${rightWidth}px` }}>
-              <ToolsPanel 
-                reportData={reportData} 
-                selectedText={selectedText}
-                onAddToGlossary={addToGlossary}
-              />
-            </div>
-          </>
-        )}
+
+        {/* Right Sidebar */}
+        <>
+          <div
+            className={`resize-handle right-handle ${isDraggingRight ? 'dragging' : ''}`}
+            onMouseDown={handleMouseDownRight}
+            title="Drag to resize right panel"
+          >
+            <div className="handle-dot" />
+          </div>
+          <div className="right-sidebar-wrapper" style={{ width: `${rightWidth}px` }}>
+            <ToolsPanel
+              reportData={reportData}
+              selectedText={selectedText}
+              glossary={glossary}
+              equations={equations}
+              onAddToGlossary={addToGlossary}
+              onJumpToText={handleJumpToText}
+            />
+          </div>
+        </>
       </div>
     </div>
   );

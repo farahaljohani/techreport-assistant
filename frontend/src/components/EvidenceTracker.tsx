@@ -4,11 +4,13 @@ import './EvidenceTracker.css';
 interface EvidenceTrackerProps {
   selectedText: string;
   reportData: any;
+  onJumpToText?: (text: string) => void;
 }
 
 export const EvidenceTracker: React.FC<EvidenceTrackerProps> = ({ 
   selectedText, 
-  reportData 
+  reportData,
+  onJumpToText
 }) => {
   const [sources, setSources] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -84,8 +86,11 @@ export const EvidenceTracker: React.FC<EvidenceTrackerProps> = ({
                     <p>{source.context}</p>
                   </div>
 
-                  <button className="jump-to-btn">
-                    ⬇️ Jump to Source
+                  <button 
+                    className="jump-to-btn"
+                    onClick={() => onJumpToText?.(source.claim)}
+                  >
+                    ⬇️ Jump to Source in Text View
                   </button>
                 </div>
               ))}

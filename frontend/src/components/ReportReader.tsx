@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import './ReportReader.css';
 
 interface ReportReaderProps {
@@ -14,6 +14,16 @@ export const ReportReader: React.FC<ReportReaderProps> = ({
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [selectedText, setSelectedText] = useState('');
+
+  // Scroll to first highlighted match whenever searchQuery changes
+  useEffect(() => {
+    if (!searchQuery) return;
+    const timer = setTimeout(() => {
+      const first = contentRef.current?.querySelector('.search-highlight') as HTMLElement | null;
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleTextSelection = useCallback(() => {
     const selection = window.getSelection()?.toString() || '';

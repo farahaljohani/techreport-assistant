@@ -6,12 +6,16 @@ import { EquationHelper } from './EquationHelper';
 import { ISACalculator } from './ISACalculator';
 import { UnitConverterTool } from './tools/UnitConverter';
 import { AskAnythingBox } from './AskAnythingBox';
+import { reportService } from '../services/api';
 import './ToolsPanel.css';
 
 interface ToolsPanelProps {
   reportData: any | null;
   selectedText: string;
+  glossary: Map<string, string>;
+  equations: any[];
   onAddToGlossary?: (term: string, definition: string) => void;
+  onJumpToText?: (text: string) => void;
 }
 
 interface AccordionSection {
@@ -54,9 +58,9 @@ const sections: AccordionSection[] = [
   },
   {
     id: 'recalculation',
-    title: 'Recalculation Panel',
+    title: 'ISA Calculator',
     icon: '🧮',
-    description: 'User inputs • Live recalculated outputs'
+    description: 'ISA atmosphere • Altitude, temperature & pressure'
   },
   {
     id: 'unit',
@@ -75,10 +79,14 @@ const sections: AccordionSection[] = [
 export const ToolsPanel: React.FC<ToolsPanelProps> = ({ 
   reportData, 
   selectedText,
-  onAddToGlossary 
+  glossary,
+  equations,
+  onAddToGlossary,
+  onJumpToText
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary']));
-  const [glossary, setGlossary] = useState<Map<string, string>>(new Map());
+  const [explanation, setExplanation] = useState<{ text: string; mode: string } | null>(null);
+  const [explaining, setExplaining] = useState(false);
 
   const expandAll = () => {
     setExpandedSections(new Set(sections.map(s => s.id)));
@@ -89,9 +97,6 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
   };
 
   const handleAddToGlossary = (term: string, definition: string) => {
-    const newGlossary = new Map(glossary);
-    newGlossary.set(term, definition);
-    setGlossary(newGlossary);
     if (onAddToGlossary) {
       onAddToGlossary(term, definition);
     }
@@ -109,14 +114,29 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
     });
   };
 
+  const handleExplain = async (mode: 'explain' | 'simplify') => {
+    if (!selectedText) return;
+    setExplaining(true);
+    setExplanation(null);
+    try {
+      const result = await reportService.explain(selectedText, reportData?.text?.substring(0, 500) || '');
+      setExplanation({ text: result.explanation || result.result || JSON.stringify(result), mode });
+    } catch {
+      setExplanation({ text: 'Failed to get explanation. Please try again.', mode });
+    } finally {
+      setExplaining(false);
+    }
+  };
+
   // Helper to show active indicators
   const hasActiveContent = (sectionId: string): boolean => {
     switch (sectionId) {
       case 'glossary':
         return glossary.size > 0;
       case 'equation':
-        return (reportData?.equations?.length || 0) > 0;
+        return equations.length > 0;
       case 'explanation':
+        return selectedText.length > 0;
       case 'evidence':
         return selectedText.length > 0;
       default:
@@ -141,13 +161,48 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
       case 'explanation':
         return (
           <div className="explanation-tool">
-            <p className="tool-hint">💡 Highlight any text in the document to get an explanation</p>
-            {selectedText && (
+            {!selectedText ? (
+              <p className="tool-hint">💡 Highlight any text in the document to get an explanation</p>
+            ) : (
               <div className="explanation-content">
                 <h4>Selected Text:</h4>
-                <p className="selected-preview">{selectedText.substring(0, 150)}...</p>
-                <button className="btn-primary">Explain This</button>
-                <button className="btn-secondary">Simplify</button>
+                <p className="selected-preview">"{selectedText.substring(0, 200)}{selectedText.length > 200 ? '…' : ''}"</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <button
+                    className="btn-primary"
+                    onClick={() => handleExplain('explain')}
+                    disabled={explaining}
+                    style={{ flex: 1 }}
+                  >
+                    {explaining ? '⏳ Explaining…' : '🔬 Explain This'}
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => handleExplain('simplify')}
+                    disabled={explaining}
+                    style={{ flex: 1 }}
+                  >
+                    {explaining ? '⏳ Simplifying…' : '✏️ Simplify'}
+                  </button>
+                </div>
+                {explanation && (
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.875rem',
+                    background: 'rgba(88,166,255,0.06)',
+                    border: '1px solid rgba(88,166,255,0.2)',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    color: '#c9d1d9',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    <strong style={{ color: '#58a6ff', display: 'block', marginBottom: '0.4rem', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {explanation.mode === 'simplify' ? 'Simplified' : 'Explanation'}
+                    </strong>
+                    {explanation.text}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -158,13 +213,14 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
           <EvidenceTracker 
             selectedText={selectedText}
             reportData={reportData}
+            onJumpToText={onJumpToText}
           />
         );
       
       case 'equation':
         return (
           <EquationHelper 
-            equations={reportData?.equations || []}
+            equations={equations}
             selectedEquation={selectedText}
           />
         );

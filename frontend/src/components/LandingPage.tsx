@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -6,35 +6,9 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onUploadClick }) => {
-  useEffect(() => {
-    const pauseBtn = document.getElementById('pauseBtn');
-    const carousel = document.querySelector('.quick-stats-carousel') as HTMLElement;
-    
-    if (pauseBtn && carousel) {
-      const handlePauseClick = () => {
-        const isPaused = carousel.classList.contains('paused');
-        
-        if (isPaused) {
-          // Resume animation
-          carousel.classList.remove('paused');
-          pauseBtn.classList.remove('paused');
-          pauseBtn.textContent = '⏸';
-        } else {
-          // Pause animation
-          carousel.classList.add('paused');
-          pauseBtn.classList.add('paused');
-          pauseBtn.textContent = '▶';
-        }
-      };
-      
-      pauseBtn.addEventListener('click', handlePauseClick);
-      
-      // Cleanup
-      return () => {
-        pauseBtn.removeEventListener('click', handlePauseClick);
-      };
-    }
-  }, []);
+  const handleLearnMore = () => {
+    document.querySelector('.features-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="landing-page">
@@ -73,180 +47,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onUploadClick }) => {
                 <span>Upload PDF</span>
                 <span className="btn-arrow">→</span>
               </button>
-              <button className="btn btn-secondary">
+              <button className="btn btn-secondary" onClick={handleLearnMore}>
                 <span>Learn More</span>
                 <span className="btn-icon">📖</span>
               </button>
             </div>
 
-            {/* Quick Stats - Scrolling Carousel */}
-            <div className="quick-stats-container">
-              <div className="quick-stats-label">Trusted by engineers & researchers</div>
-              <div className="quick-stats-wrapper">
-                <div className="quick-stats-carousel">
-                  <div className="stat-item">
-                    <span className="stat-icon">⚡</span>
-                    <span>Instant Answers</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🧠</span>
-                    <span>Full Context</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🔐</span>
-                    <span>100% Private</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">📊</span>
-                    <span>Real-time Analysis</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🎯</span>
-                    <span>Precise Results</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">⚙️</span>
-                    <span>Advanced Tools</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🚀</span>
-                    <span>Lightning Fast</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">💡</span>
-                    <span>Smart Insights</span>
-                  </div>
-                  
-                  {/* Duplicate for seamless loop */}
-                  <div className="stat-item">
-                    <span className="stat-icon">⚡</span>
-                    <span>Instant Answers</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🧠</span>
-                    <span>Full Context</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🔐</span>
-                    <span>100% Private</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">📊</span>
-                    <span>Real-time Analysis</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🎯</span>
-                    <span>Precise Results</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">⚙️</span>
-                    <span>Advanced Tools</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">🚀</span>
-                    <span>Lightning Fast</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-icon">💡</span>
-                    <span>Smart Insights</span>
-                  </div>
-                </div>
-                <button className="carousel-pause-btn" id="pauseBtn" title="Pause">⏸</button>
+            {/* Static trust stats */}
+            <div className="hero-stats-row">
+              <div className="hero-stat">
+                <span className="hero-stat-value">⚡</span>
+                <span className="hero-stat-label">Instant Answers</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat">
+                <span className="hero-stat-value">🔐</span>
+                <span className="hero-stat-label">100% Private</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat">
+                <span className="hero-stat-value">🎯</span>
+                <span className="hero-stat-label">Precise Results</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat">
+                <span className="hero-stat-value">📐</span>
+                <span className="hero-stat-label">8 AI Tools</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Testimonials Carousel */}
-      <section className="carousel-section testimonials-section">
-        <div className="carousel-label">What Engineers & Researchers Say</div>
-        <div className="carousel-wrapper">
-          <div className="testimonials-carousel">
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"This tool saved me hours of research. The AI understands technical documents like no other solution."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👨‍💼</div>
-                <div>
-                  <p className="author-name">Dr. John Smith</p>
-                  <p className="author-title">Mechanical Engineer</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"The equation analyzer is incredible. Finally, a tool that explains complex math in seconds."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👩‍🔬</div>
-                <div>
-                  <p className="author-name">Dr. Sarah Johnson</p>
-                  <p className="author-title">Physics Researcher</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"The glossary feature helps our team stay on the same page. Highly recommended!"</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👨‍🎓</div>
-                <div>
-                  <p className="author-name">Prof. Michael Chen</p>
-                  <p className="author-title">Academic Advisor</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"Best investment in our research workflow. Productivity increased by 40%."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👩‍💻</div>
-                <div>
-                  <p className="author-name">Emma Wilson</p>
-                  <p className="author-title">Data Scientist</p>
-                </div>
-              </div>
-            </div>
-            {/* Duplicate for seamless loop */}
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"This tool saved me hours of research. The AI understands technical documents like no other solution."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👨‍💼</div>
-                <div>
-                  <p className="author-name">Dr. John Smith</p>
-                  <p className="author-title">Mechanical Engineer</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"The equation analyzer is incredible. Finally, a tool that explains complex math in seconds."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👩‍🔬</div>
-                <div>
-                  <p className="author-name">Dr. Sarah Johnson</p>
-                  <p className="author-title">Physics Researcher</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"The glossary feature helps our team stay on the same page. Highly recommended!"</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👨‍🎓</div>
-                <div>
-                  <p className="author-name">Prof. Michael Chen</p>
-                  <p className="author-title">Academic Advisor</p>
-                </div>
-              </div>
-            </div>
-            <div className="testimonial-card">
-              <p className="testimonial-quote">"Best investment in our research workflow. Productivity increased by 40%."</p>
-              <div className="testimonial-author">
-                <div className="author-avatar">👩‍💻</div>
-                <div>
-                  <p className="author-name">Emma Wilson</p>
-                  <p className="author-title">Data Scientist</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <div className="features-section">

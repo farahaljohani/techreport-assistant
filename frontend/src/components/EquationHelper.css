@@ -14,7 +14,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #7851a9;
+  border-bottom: 1px solid #30363d;
 }
 
 .eq-header h3 {
@@ -125,7 +125,7 @@
 
 .btn-explain {
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, #7851a9 0%, #9c27b0 100%);
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -137,7 +137,7 @@
 
 .btn-explain:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(120, 81, 169, 0.3);
+  box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
 }
 
 .btn-explain:disabled {
@@ -241,20 +241,20 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  border-left: 3px solid #7851a9;
+  border-left: 3px solid #58a6ff;
 }
 
 .eq-card:hover {
-  background: #0d1117;
-  border-left-color: #9c27b0;
+  background: rgba(88, 166, 255, 0.05);
+  border-left-color: #79c0ff;
   transform: translateX(2px);
-  box-shadow: 0 4px 12px rgba(120, 81, 169, 0.2);
+  box-shadow: 0 4px 12px rgba(88, 166, 255, 0.15);
 }
 
 .eq-card.selected {
-  background: rgba(120, 81, 169, 0.1);
-  border-left-color: #9c27b0;
-  box-shadow: 0 0 0 1px rgba(120, 81, 169, 0.3);
+  background: rgba(88, 166, 255, 0.1);
+  border-left-color: #79c0ff;
+  box-shadow: 0 0 0 1px rgba(88, 166, 255, 0.2);
 }
 
 .eq-card-header {
@@ -358,8 +358,8 @@
 
 .eq-explanation {
   padding: 1rem;
-  background: rgba(120, 81, 169, 0.1);
-  border: 1px solid rgba(120, 81, 169, 0.3);
+  background: rgba(88, 166, 255, 0.06);
+  border: 1px solid rgba(88, 166, 255, 0.2);
   border-radius: 6px;
 }
 

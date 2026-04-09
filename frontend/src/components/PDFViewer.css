@@ -8,53 +8,10 @@
   animation: fadeIn 0.4s ease-out;
 }
 
-/* Enhanced Header */
-.pdf-header {
-  padding: 1.5rem 2rem 1rem;
-  background: linear-gradient(135deg, rgba(22, 27, 34, 0.95) 0%, rgba(13, 17, 23, 0.95) 100%);
-  border-bottom: 2px solid transparent;
-  border-image: linear-gradient(90deg, #58a6ff, #238636, transparent) 1;
-  backdrop-filter: blur(10px);
-  animation: slideInDown 0.4s ease-out;
-}
-
-.doc-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.doc-icon {
-  font-size: 32px;
-  animation: float 3s ease-in-out infinite;
-}
-
-.doc-details {
-  flex: 1;
-}
-
-.doc-title {
-  margin: 0 0 0.25rem 0;
-  font-size: 18px;
-  font-weight: 800;
-  color: #f0f6fc;
-}
-
-.doc-meta {
-  margin: 0;
-  font-size: 13px;
-  color: #8b949e;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .progress-indicator {
   height: 3px;
   background: rgba(48, 54, 61, 0.5);
-  border-radius: 2px;
-  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .progress-bar {
@@ -238,7 +195,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 2rem;
+  padding: 1rem;
   background: linear-gradient(135deg, rgba(13, 17, 23, 0.6) 0%, rgba(22, 27, 34, 0.4) 100%);
   animation: fadeIn 0.6s ease-out;
 }
@@ -306,29 +263,6 @@
   margin: 0;
 }
 
-/* Keyboard Shortcuts Hint */
-.shortcuts-hint {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0.75rem 2rem;
-  background: rgba(22, 27, 34, 0.6);
-  border-top: 1px solid rgba(48, 54, 61, 0.5);
-  backdrop-filter: blur(10px);
-  animation: slideInUp 0.6s ease-out;
-}
-
-.hint-item {
-  font-size: 11px;
-  color: #8b949e;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  background: rgba(13, 17, 23, 0.6);
-  border-radius: 4px;
-  border: 1px solid rgba(48, 54, 61, 0.5);
-}
 
 /* Scrollbar styling */
 .pdf-container::-webkit-scrollbar {

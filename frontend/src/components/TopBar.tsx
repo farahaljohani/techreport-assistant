@@ -1,24 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { reportService } from '../services/api';
 import './TopBar.css';
 
 interface TopBarProps {
   onReportUpload: (data: any) => void;
   onSearch: (query: string) => void;
+  onGoHome?: () => void;
   reportData?: any;
+  equationsCount?: number;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ onReportUpload, onSearch, reportData }) => {
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
+export const TopBar: React.FC<TopBarProps> = ({ onReportUpload, onGoHome, reportData, equationsCount = 0 }) => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     try {
       const data = await reportService.uploadReport(file);
       onReportUpload(data);
@@ -28,33 +23,9 @@ export const TopBar: React.FC<TopBarProps> = ({ onReportUpload, onSearch, report
     }
   };
 
-  const handleAskQuestion = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!question.trim() || !reportData) {
-      alert('Please upload a PDF first');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = await reportService.askQuestion(question, reportData.text);
-      setAnswer(result.answer);
-      setShowAnswer(true);
-      setQuestion('');
-    } catch (error) {
-      console.error('Error asking question:', error);
-      setAnswer('❌ Error getting answer. Please try again.');
-      setShowAnswer(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="topbar">
-      {/* Enhanced Logo with Status */}
-      <div className="topbar-logo">
+      <div className="topbar-logo" onClick={reportData ? onGoHome : undefined} style={reportData ? { cursor: 'pointer' } : {}}>
         <div className="logo-container">
           <span className="logo-icon">✨</span>
           {reportData && <span className="status-indicator">●</span>}
@@ -62,57 +33,25 @@ export const TopBar: React.FC<TopBarProps> = ({ onReportUpload, onSearch, report
         <div className="logo-info">
           <span className="logo-text">TechReport</span>
           <span className="logo-subtitle">
-            {reportData ? `${reportData.filename || 'Document loaded'}` : 'Assistant'}
+            {reportData ? 'Click to go home' : 'Assistant'}
           </span>
         </div>
       </div>
-
-      {/* Enhanced Ask Box */}
-      <form className="ask-form" onSubmit={handleAskQuestion}>
-        <div className="input-wrapper">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder={reportData ? "Ask anything about your PDF..." : "Upload a PDF to get started"}
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            disabled={!reportData || loading}
-            className="ask-input"
-          />
-          {question && (
-            <button 
-              type="button" 
-              className="clear-input-btn"
-              onClick={() => setQuestion('')}
-            >
-              ✕
-            </button>
-          )}
-        </div>
-        {loading && (
-          <div className="loading-indicator">
-            <div className="spinner"></div>
-          </div>
-        )}
-      </form>
-
-      {/* Answer Popup */}
-      {showAnswer && answer && (
-        <div className="answer-popup">
-          <div className="answer-content">
-            <button 
-              className="close-btn"
-              onClick={() => setShowAnswer(false)}
-            >
-              ✕
-            </button>
-            <h3>💡 Answer</h3>
-            <p>{answer}</p>
-          </div>
-        </div>
+      {reportData && (
+        <button className="home-btn" onClick={onGoHome} title="Back to Home">
+          ← Home
+        </button>
       )}
 
-      {/* Enhanced Upload and Actions */}
+      {reportData ? (
+        <div className="topbar-doc-center">
+          <span className="topbar-doc-icon">📄</span>
+          <span className="topbar-doc-name">{reportData.filename || 'Document'}</span>
+        </div>
+      ) : (
+        <div className="topbar-spacer" />
+      )}
+
       <div className="topbar-actions">
         {reportData && (
           <div className="quick-stats-bar">
@@ -122,11 +61,15 @@ export const TopBar: React.FC<TopBarProps> = ({ onReportUpload, onSearch, report
             </div>
             <div className="stat-badge">
               <span className="stat-icon">📐</span>
-              <span className="stat-text">{reportData.equations?.length || 0} equations</span>
+              <span className="stat-text">{equationsCount} eq</span>
+            </div>
+            <div className="stat-badge">
+              <span className="stat-icon">💾</span>
+              <span className="stat-text">{reportData.file_size ? `${(reportData.file_size / 1024).toFixed(0)} KB` : '—'}</span>
             </div>
           </div>
         )}
-        
+
         <div className="topbar-upload">
           <label className="upload-label">
             <input
