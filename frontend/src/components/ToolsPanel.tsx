@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SummaryTool } from './tools/SummaryTool';
 import { GlossaryPanel } from './GlossaryPanel';
 import { EvidenceTracker } from './EvidenceTracker';
@@ -6,14 +6,18 @@ import { EquationHelper } from './EquationHelper';
 import { ISACalculator } from './ISACalculator';
 import { UnitConverterTool } from './tools/UnitConverter';
 import { AskAnythingBox } from './AskAnythingBox';
+import { CopyButton } from './CopyButton';
 import { reportService } from '../services/api';
+import { describeApiError, isCancel } from '../utils/errors';
+import { readJSON, writeJSON, StorageKeys } from '../utils/storage';
+import type { ReportData, EquationItem } from '../types';
 import './ToolsPanel.css';
 
 interface ToolsPanelProps {
-  reportData: any | null;
+  reportData: ReportData | null;
   selectedText: string;
   glossary: Map<string, string>;
-  equations: any[];
+  equations: EquationItem[];
   onAddToGlossary?: (term: string, definition: string) => void;
   onJumpToText?: (text: string) => void;
 }
@@ -26,90 +30,51 @@ interface AccordionSection {
 }
 
 const sections: AccordionSection[] = [
-  {
-    id: 'summary',
-    title: 'Summary Tool',
-    icon: '📋',
-    description: 'Auto summary of page/selection • Bullet-point extraction'
-  },
-  {
-    id: 'glossary',
-    title: 'Glossary Tool',
-    icon: '📚',
-    description: 'Definitions of highlighted terms'
-  },
-  {
-    id: 'explanation',
-    title: 'Explanation Tool',
-    icon: '💡',
-    description: 'Explain selected text • Rewrite in simple English'
-  },
-  {
-    id: 'evidence',
-    title: 'Evidence Tracker',
-    icon: '🔍',
-    description: 'Sources for claims/numbers • "How Do You Know?"'
-  },
-  {
-    id: 'equation',
-    title: 'Equation Helper',
-    icon: '📐',
-    description: 'List of all equations • View variables/units'
-  },
-  {
-    id: 'recalculation',
-    title: 'ISA Calculator',
-    icon: '🧮',
-    description: 'ISA atmosphere • Altitude, temperature & pressure'
-  },
-  {
-    id: 'unit',
-    title: 'Unit Converter',
-    icon: '🔄',
-    description: 'Auto-detect numbers • Convert units'
-  },
-  {
-    id: 'ask',
-    title: 'Ask-Anything Box',
-    icon: '🤔',
-    description: 'User Q&A with report context'
-  }
+  { id: 'summary',       title: 'Summary Tool',     icon: '📋', description: 'Auto summary of page/selection • Bullet-point extraction' },
+  { id: 'glossary',      title: 'Glossary Tool',    icon: '📚', description: 'Definitions of highlighted terms' },
+  { id: 'explanation',   title: 'Explanation Tool', icon: '💡', description: 'Explain selected text • Rewrite in simple English' },
+  { id: 'evidence',      title: 'Evidence Tracker', icon: '🔍', description: 'Sources for claims/numbers • "How Do You Know?"' },
+  { id: 'equation',      title: 'Equation Helper',  icon: '📐', description: 'List of all equations • View variables/units' },
+  { id: 'recalculation', title: 'ISA Calculator',   icon: '🧮', description: 'ISA atmosphere • Altitude, temperature & pressure' },
+  { id: 'unit',          title: 'Unit Converter',   icon: '🔄', description: 'Auto-detect numbers • Convert units' },
+  { id: 'ask',           title: 'Ask-Anything Box', icon: '🤔', description: 'User Q&A with report context' },
 ];
 
-export const ToolsPanel: React.FC<ToolsPanelProps> = ({ 
-  reportData, 
+export const ToolsPanel: React.FC<ToolsPanelProps> = ({
+  reportData,
   selectedText,
   glossary,
   equations,
   onAddToGlossary,
-  onJumpToText
+  onJumpToText,
 }) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
+    const stored = readJSON<string[] | null>(StorageKeys.expandedTools, null);
+    return new Set(stored ?? ['summary']);
+  });
   const [explanation, setExplanation] = useState<{ text: string; mode: string } | null>(null);
+  const [explanationError, setExplanationError] = useState<string | null>(null);
   const [explaining, setExplaining] = useState(false);
+  const explainAbortRef = useRef<AbortController | null>(null);
 
-  const expandAll = () => {
-    setExpandedSections(new Set(sections.map(s => s.id)));
-  };
+  useEffect(() => () => explainAbortRef.current?.abort(), []);
 
-  const collapseAll = () => {
-    setExpandedSections(new Set());
-  };
+  useEffect(() => {
+    writeJSON(StorageKeys.expandedTools, Array.from(expandedSections));
+  }, [expandedSections]);
+
+  const expandAll = () => setExpandedSections(new Set(sections.map(s => s.id)));
+  const collapseAll = () => setExpandedSections(new Set());
 
   const handleAddToGlossary = (term: string, definition: string) => {
-    if (onAddToGlossary) {
-      onAddToGlossary(term, definition);
-    }
+    onAddToGlossary?.(term, definition);
   };
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-      } else {
-        newSet.add(sectionId);
-      }
+      if (newSet.has(sectionId)) newSet.delete(sectionId);
+      else newSet.add(sectionId);
       return newSet;
     });
   };
@@ -118,29 +83,43 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
     if (!selectedText) return;
     setExplaining(true);
     setExplanation(null);
+    setExplanationError(null);
+
+    explainAbortRef.current?.abort();
+    const controller = new AbortController();
+    explainAbortRef.current = controller;
+
     try {
-      const result = await reportService.explain(selectedText, reportData?.text?.substring(0, 500) || '');
-      setExplanation({ text: result.explanation || result.result || JSON.stringify(result), mode });
-    } catch {
-      setExplanation({ text: 'Failed to get explanation. Please try again.', mode });
+      const result = await reportService.explain(
+        selectedText,
+        reportData?.text?.substring(0, 500) || '',
+        { signal: controller.signal }
+      );
+      if (controller.signal.aborted) return;
+      setExplanation({
+        text: result.explanation || result.result || JSON.stringify(result),
+        mode,
+      });
+    } catch (err) {
+      if (isCancel(err)) return;
+      setExplanationError(describeApiError(err, 'explanation'));
     } finally {
-      setExplaining(false);
+      if (!controller.signal.aborted) setExplaining(false);
     }
   };
 
-  // Helper to show active indicators
+  const handleCancelExplain = () => {
+    explainAbortRef.current?.abort();
+    setExplaining(false);
+  };
+
   const hasActiveContent = (sectionId: string): boolean => {
     switch (sectionId) {
-      case 'glossary':
-        return glossary.size > 0;
-      case 'equation':
-        return equations.length > 0;
-      case 'explanation':
-        return selectedText.length > 0;
-      case 'evidence':
-        return selectedText.length > 0;
-      default:
-        return false;
+      case 'glossary':    return glossary.size > 0;
+      case 'equation':    return equations.length > 0;
+      case 'explanation': return selectedText.length > 0;
+      case 'evidence':    return selectedText.length > 0;
+      default:            return false;
     }
   };
 
@@ -148,16 +127,16 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
     switch (sectionId) {
       case 'summary':
         return <SummaryTool selectedText={selectedText} reportData={reportData} />;
-      
+
       case 'glossary':
         return (
-          <GlossaryPanel 
+          <GlossaryPanel
             selectedText={selectedText}
             glossary={glossary}
             onAddToGlossary={handleAddToGlossary}
           />
         );
-      
+
       case 'explanation':
         return (
           <div className="explanation-tool">
@@ -166,74 +145,81 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
             ) : (
               <div className="explanation-content">
                 <h4>Selected Text:</h4>
-                <p className="selected-preview">"{selectedText.substring(0, 200)}{selectedText.length > 200 ? '…' : ''}"</p>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <p className="selected-preview">
+                  "{selectedText.substring(0, 200)}{selectedText.length > 200 ? '…' : ''}"
+                </p>
+                <div className="explanation-buttons">
                   <button
+                    type="button"
                     className="btn-primary"
-                    onClick={() => handleExplain('explain')}
-                    disabled={explaining}
-                    style={{ flex: 1 }}
+                    onClick={() => (explaining ? handleCancelExplain() : handleExplain('explain'))}
+                    disabled={!explaining && !selectedText}
                   >
-                    {explaining ? '⏳ Explaining…' : '🔬 Explain This'}
+                    {explaining ? '⏳ Cancel' : '🔬 Explain This'}
                   </button>
                   <button
+                    type="button"
                     className="btn-secondary"
                     onClick={() => handleExplain('simplify')}
                     disabled={explaining}
-                    style={{ flex: 1 }}
                   >
-                    {explaining ? '⏳ Simplifying…' : '✏️ Simplify'}
+                    {explaining ? '…' : '✏️ Simplify'}
                   </button>
                 </div>
-                {explanation && (
-                  <div style={{
-                    marginTop: '0.75rem',
-                    padding: '0.875rem',
-                    background: 'rgba(88,166,255,0.06)',
-                    border: '1px solid rgba(88,166,255,0.2)',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    color: '#c9d1d9',
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    <strong style={{ color: '#58a6ff', display: 'block', marginBottom: '0.4rem', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {explanation.mode === 'simplify' ? 'Simplified' : 'Explanation'}
-                    </strong>
-                    {explanation.text}
+
+                {explaining && (
+                  <div className="skeleton-block" aria-busy="true">
+                    <span className="skeleton skeleton-line long" />
+                    <span className="skeleton skeleton-line medium" />
+                    <span className="skeleton skeleton-line long" />
+                    <span className="skeleton skeleton-line short" />
+                  </div>
+                )}
+
+                {!explaining && explanationError && (
+                  <div className="explanation-box error" role="alert">
+                    <strong className="explanation-label error-label">⚠️ Couldn't get explanation</strong>
+                    {explanationError}
+                  </div>
+                )}
+
+                {!explaining && explanation && !explanationError && (
+                  <div className="explanation-box">
+                    <div className="explanation-head">
+                      <strong className="explanation-label">
+                        {explanation.mode === 'simplify' ? 'Simplified' : 'Explanation'}
+                      </strong>
+                      <CopyButton text={explanation.text} compact />
+                    </div>
+                    <p className="explanation-body">{explanation.text}</p>
                   </div>
                 )}
               </div>
             )}
           </div>
         );
-      
+
       case 'evidence':
         return (
-          <EvidenceTracker 
+          <EvidenceTracker
             selectedText={selectedText}
             reportData={reportData}
             onJumpToText={onJumpToText}
           />
         );
-      
+
       case 'equation':
-        return (
-          <EquationHelper 
-            equations={equations}
-            selectedEquation={selectedText}
-          />
-        );
-      
+        return <EquationHelper equations={equations} selectedEquation={selectedText} />;
+
       case 'recalculation':
         return <ISACalculator />;
-      
+
       case 'unit':
         return <UnitConverterTool />;
-      
+
       case 'ask':
         return <AskAnythingBox reportData={reportData} />;
-      
+
       default:
         return null;
     }
@@ -247,61 +233,71 @@ export const ToolsPanel: React.FC<ToolsPanelProps> = ({
       <div className="tools-header">
         <div className="header-top-row">
           <div className="header-title-section">
-            <h3>🛠️ AI Tools</h3>
+            <h2>🛠️ Tools</h2>
             <div className="tools-badges">
               <span className="tool-badge badge-active">{activeToolsCount} Active</span>
               <span className="tool-badge badge-expanded">{expandedCount}/{sections.length} Open</span>
             </div>
           </div>
           <div className="header-actions-row">
-            <button 
-              className="btn-icon-tools" 
+            <button
+              type="button"
+              className="btn-icon-tools"
               onClick={expandAll}
-              title="Expand All"
+              title="Expand all sections"
+              aria-label="Expand all tool sections"
             >
               ⊞
             </button>
-            <button 
-              className="btn-icon-tools" 
+            <button
+              type="button"
+              className="btn-icon-tools"
               onClick={collapseAll}
-              title="Collapse All"
+              title="Collapse all sections"
+              aria-label="Collapse all tool sections"
             >
               ⊟
             </button>
           </div>
         </div>
-        <p className="header-subtitle">Select & analyze report content</p>
+        <p className="header-subtitle">Select &amp; analyze report content</p>
       </div>
 
       <div className="accordion-container">
         {sections.map(section => (
-          <div 
-            key={section.id} 
+          <div
+            key={section.id}
             className={`accordion-section ${expandedSections.has(section.id) ? 'expanded' : ''}`}
           >
-            <button 
+            <button
+              type="button"
               className="accordion-header"
               onClick={() => toggleSection(section.id)}
+              aria-expanded={expandedSections.has(section.id)}
+              aria-controls={`tool-panel-${section.id}`}
             >
               <div className="header-left">
-                <span className="section-icon">{section.icon}</span>
+                <span className="section-icon" aria-hidden="true">{section.icon}</span>
                 <div className="header-text">
                   <span className="section-title">
                     {section.title}
                     {hasActiveContent(section.id) && (
-                      <span className="active-indicator">●</span>
+                      <span className="active-indicator" aria-label="has content" title="This tool has content">●</span>
                     )}
                   </span>
                   <span className="section-description">{section.description}</span>
                 </div>
               </div>
-              <span className={`accordion-arrow ${expandedSections.has(section.id) ? 'open' : ''}`}>
+              <span
+                className={`accordion-arrow ${expandedSections.has(section.id) ? 'open' : ''}`}
+                aria-hidden="true"
+              >
                 ▼
               </span>
             </button>
-            
+
             {expandedSections.has(section.id) && (
-              <div className="accordion-content">
+              <div className="accordion-content" id={`tool-panel-${section.id}`}>
                 {renderSectionContent(section.id)}
               </div>
             )}

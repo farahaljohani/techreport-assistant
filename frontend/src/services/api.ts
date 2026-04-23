@@ -1,148 +1,141 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
-console.log('API_URL:', API_URL);
+// Origin without the `/api` suffix — used for static resources served by the
+// backend (e.g. `/api/pdf/<id>` returned in `reportData.file_path`).
+export const API_ORIGIN = API_URL.replace(/\/api\/?$/, '');
+
+if (process.env.NODE_ENV !== 'production') {
+  // eslint-disable-next-line no-console
+  console.log('API_URL:', API_URL);
+}
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout
+  timeout: 60_000,
 });
 
-// Add response interceptor for debugging
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+  r => r,
+  error => {
+    if (!axios.isCancel(error) && process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.error('API Error:', error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );
 
+const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
+
+// Ask-Anything: cap the report text we send to avoid runaway token usage.
+// ~60k chars ≈ ~15k tokens which sits comfortably under most model limits.
+const MAX_CONTEXT_CHARS = 60_000;
+
+export function clampContext(text: string, max: number = MAX_CONTEXT_CHARS): string {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  // Keep the beginning and the end — the start usually has the abstract,
+  // the end often has conclusions. We drop the middle with a marker so the
+  // model knows content was elided.
+  const head = text.slice(0, Math.floor(max * 0.65));
+  const tail = text.slice(-Math.floor(max * 0.3));
+  return `${head}\n\n[…content trimmed to fit context…]\n\n${tail}`;
+}
+
+type ReqOpts = { signal?: AbortSignal };
+
 export const reportService = {
-  uploadReport: async (file: File) => {
+  uploadReport: async (
+    file: File,
+    onProgress?: (percent: number) => void,
+    opts: ReqOpts = {}
+  ) => {
     const formData = new FormData();
     formData.append('file', file);
-    try {
-      const response = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      console.log('Upload response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw error;
-    }
+    const cfg: AxiosRequestConfig = {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: UPLOAD_TIMEOUT_MS,
+      signal: opts.signal,
+      onUploadProgress: evt => {
+        if (onProgress && evt.total) {
+          const pct = Math.min(99, Math.round((evt.loaded / evt.total) * 100));
+          onProgress(pct);
+        }
+      },
+    };
+    const response = await api.post('/upload', formData, cfg);
+    if (onProgress) onProgress(100);
+    return response.data;
   },
 
-  summarize: async (text: string, maxLength: number = 200) => {
-    try {
-      console.log('Calling /summarize with text length:', text.length);
-      const response = await api.post('/summarize', { 
-        report_id: 'current', 
-        text, 
-        max_length: maxLength 
-      });
-      console.log('Summarize response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Summarize error:', error);
-      throw error;
-    }
+  summarize: async (text: string, maxLength: number = 200, opts: ReqOpts = {}) => {
+    const response = await api.post(
+      '/summarize',
+      { report_id: 'current', text, max_length: maxLength },
+      { signal: opts.signal }
+    );
+    return response.data;
   },
 
-  explain: async (highlightedText: string, context: string = '') => {
-    try {
-      console.log('Calling /explain with text:', highlightedText.substring(0, 50));
-      const response = await api.post('/explain', {
-        report_id: 'current',
-        highlighted_text: highlightedText,
-        context,
-      });
-      console.log('Explain response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Explain error:', error);
-      throw error;
-    }
+  explain: async (highlightedText: string, context: string = '', opts: ReqOpts = {}) => {
+    const response = await api.post(
+      '/explain',
+      { report_id: 'current', highlighted_text: highlightedText, context },
+      { signal: opts.signal }
+    );
+    return response.data;
   },
 
-  askQuestion: async (question: string, reportText?: string) => {
-    try {
-      console.log('Calling /ask-question with full context');
-      const response = await api.post('/ask-question', {
-        question: question,
-        report_text: reportText || ''
-      });
-      console.log('Question response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Ask question error:', error);
-      throw error;
-    }
+  askQuestion: async (question: string, reportText?: string, opts: ReqOpts = {}) => {
+    const response = await api.post(
+      '/ask-question',
+      { question, report_text: clampContext(reportText || '') },
+      { signal: opts.signal }
+    );
+    return response.data;
   },
 
-  explainEquation: async (equation: string, context: string = '') => {
-    try {
-      const response = await api.post('/explain-equation', { 
-        equation, 
-        context 
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Explain equation error:', error);
-      throw error;
-    }
+  explainEquation: async (equation: string, context: string = '', opts: ReqOpts = {}) => {
+    const response = await api.post(
+      '/explain-equation',
+      { equation, context },
+      { signal: opts.signal }
+    );
+    return response.data;
   },
 
-  extractDefinitions: async (text: string) => {
-    try {
-      console.log('Calling /extract-definitions with text length:', text.length);
-      const response = await api.post('/extract-definitions', { text });
-      console.log('Definitions response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Extract definitions error:', error);
-      throw error;
-    }
+  extractDefinitions: async (text: string, opts: ReqOpts = {}) => {
+    const response = await api.post('/extract-definitions', { text }, { signal: opts.signal });
+    return response.data;
   },
 
-  convertUnits: async (value: number, fromUnit: string, toUnit: string) => {
-    try {
-      const response = await api.post('/convert-units', {
-        value,
-        from_unit: fromUnit,
-        to_unit: toUnit,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Convert units error:', error);
-      throw error;
-    }
+  convertUnits: async (
+    value: number,
+    fromUnit: string,
+    toUnit: string,
+    opts: ReqOpts = {}
+  ) => {
+    const response = await api.post(
+      '/convert-units',
+      { value, from_unit: fromUnit, to_unit: toUnit },
+      { signal: opts.signal }
+    );
+    return response.data;
   },
 
-  getConversions: async () => {
-    try {
-      const response = await api.get('/conversions');
-      return response.data;
-    } catch (error) {
-      console.error('Get conversions error:', error);
-      throw error;
-    }
+  getConversions: async (opts: ReqOpts = {}) => {
+    const response = await api.get('/conversions', { signal: opts.signal });
+    return response.data;
   },
 
-  detectEquations: async (text: string) => {
-    try {
-      console.log('Calling /detect-equations with text length:', text.length);
-      const response = await api.post('/detect-equations', { text });
-      console.log('Detected equations:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Detect equations error:', error);
-      throw error;
-    }
+  detectEquations: async (text: string, opts: ReqOpts = {}) => {
+    const response = await api.post('/detect-equations', { text }, { signal: opts.signal });
+    return response.data;
   },
 };
 

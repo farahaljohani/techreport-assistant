@@ -1,12 +1,16 @@
 import React from 'react';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './utils/toast';
 import './App.css';
+import './styles/globals.css';
 
 function App() {
   return (
     <ErrorBoundary>
-      <Layout />
+      <ToastProvider>
+        <Layout />
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

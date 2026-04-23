@@ -21,7 +21,6 @@ export const ISACalculator: React.FC = () => {
       const R = 8.31447; // Gas constant J/mol/K
 
       temp = T0 + L * alt;
-      const exponent = (-g * M * alt) / (R * T0);
       pressure = P0 * Math.pow(T0 / temp, -g * M / (R * L));
       density = (pressure * M) / (R * temp);
     } else {
@@ -41,7 +40,7 @@ export const ISACalculator: React.FC = () => {
     });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       calculateISA();
     }
@@ -52,18 +51,19 @@ export const ISACalculator: React.FC = () => {
       <h3>🌍 ISA Calculator</h3>
 
       <div className="isa-input-group">
-        <label>Altitude (m)</label>
+        <label htmlFor="isa-altitude">Altitude (m)</label>
         <input
+          id="isa-altitude"
           type="number"
           value={altitude}
-          onChange={(e) => setAltitude(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onChange={e => setAltitude(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="0"
           className="isa-input"
         />
       </div>
 
-      <button onClick={calculateISA} className="isa-btn">
+      <button type="button" onClick={calculateISA} className="isa-btn">
         📊 Calculate
       </button>
 
