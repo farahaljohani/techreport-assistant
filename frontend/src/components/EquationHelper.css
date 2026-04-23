@@ -386,11 +386,28 @@
 
 /* Favorites Bar */
 .eq-favorites-bar {
-  padding: 0.75rem;
-  background: rgba(255, 215, 0, 0.1);
+  padding: 0;
+  text-align: center;
+}
+
+.favorites-toggle {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  background: rgba(255, 215, 0, 0.08);
   border: 1px solid rgba(255, 215, 0, 0.3);
   border-radius: 6px;
-  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.favorites-toggle:hover {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.favorites-toggle.active {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: rgba(255, 215, 0, 0.7);
 }
 
 .favorites-label {
@@ -418,4 +435,17 @@
   .btn-explain {
     width: 100%;
   }
+}
+
+.eq-explanation.error {
+  border-color: rgba(248, 81, 73, 0.45);
+  background: rgba(248, 81, 73, 0.08);
+}
+
+.eq-explanation.error .explanation-header {
+  color: #ffb4b0;
+}
+
+.eq-explanation.error p {
+  color: #ffa198;
 }

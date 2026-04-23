@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { CopyButton } from './CopyButton';
+import type { ReportData } from '../types';
 import './ReportReader.css';
 
 interface ReportReaderProps {
-  reportData: any | null;
+  reportData: ReportData | null;
   searchQuery: string;
   onTextSelect: (selectedText: string) => void;
 }
@@ -66,9 +68,23 @@ export const ReportReader: React.FC<ReportReaderProps> = ({
     return (
       <div className="report-reader empty">
         <div className="empty-state">
-          <p className="icon">📄</p>
+          <p className="icon" aria-hidden="true">📄</p>
           <p>Upload a report to begin reading</p>
-          <p className="subtitle">📌 Tip: Highlight any text and use AI tools on the right</p>
+          <p className="subtitle">📌 Tip: Highlight any text and use the tools on the right</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!reportData.text) {
+    return (
+      <div className="report-reader empty">
+        <div className="empty-state">
+          <p className="icon" aria-hidden="true">📄</p>
+          <p>No extracted text available for this report.</p>
+          <p className="subtitle">
+            Use the PDF view, or re-upload the file to re-enable text tools.
+          </p>
         </div>
       </div>
     );
@@ -89,13 +105,7 @@ export const ReportReader: React.FC<ReportReaderProps> = ({
       </div>
 
       <div className="report-controls">
-        <button 
-          className="btn-copy"
-          onClick={() => navigator.clipboard.writeText(reportData.text)}
-          title="Copy all text"
-        >
-          📋 Copy All
-        </button>
+        <CopyButton text={reportData.text} label="Copy all text" />
       </div>
 
       <div

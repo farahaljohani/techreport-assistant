@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { readJSON, writeJSON, StorageKeys } from '../utils/storage';
+import { useToast } from '../utils/toast';
+import type { ReportData, EquationItem } from '../types';
 import './LeftSidebar.css';
 
 interface LeftSidebarProps {
-  reportData: any;
-  equations: any[];
+  reportData: ReportData | null;
+  equations: EquationItem[];
   equationsLoading?: boolean;
   glossary: Map<string, string>;
+  onRemoveFromGlossary?: (term: string) => void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations, equationsLoading = false, glossary }) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['outline']));
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  reportData,
+  equations,
+  equationsLoading = false,
+  glossary,
+  onRemoveFromGlossary,
+}) => {
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
+    const stored = readJSON<string[] | null>(StorageKeys.expandedSidebar, null);
+    return new Set(stored ?? ['outline']);
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [equationSearch, setEquationSearch] = useState('');
   const [selectedEquation, setSelectedEquation] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const toast = useToast();
+
+  useEffect(() => {
+    writeJSON(StorageKeys.expandedSidebar, Array.from(expandedSections));
+  }, [expandedSections]);
+
+  const copyWithToast = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied`);
+    } catch {
+      toast.error('Could not copy to clipboard');
+    }
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -64,17 +91,21 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
         <div className="header-top">
           <h2>📄 Document Overview</h2>
           <div className="header-actions">
-            <button 
-              className="btn-icon" 
+            <button
+              type="button"
+              className="btn-icon"
               onClick={expandAll}
-              title="Expand All Sections"
+              title="Expand all sections"
+              aria-label="Expand all sidebar sections"
             >
               ⊞
             </button>
-            <button 
-              className="btn-icon" 
+            <button
+              type="button"
+              className="btn-icon"
               onClick={collapseAll}
-              title="Collapse All Sections"
+              title="Collapse all sections"
+              aria-label="Collapse all sidebar sections"
             >
               ⊟
             </button>
@@ -247,7 +278,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
               <div className="empty-state">
                 <span className="empty-icon" style={{ fontSize: '28px', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⚙️</span>
                 <p>Detecting equations…</p>
-                <small>Analysing document with AI</small>
+                <small>Analysing document…</small>
               </div>
             ) : equations.length === 0 ? (
               <div className="empty-state">
@@ -271,10 +302,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
                   >
                     <div className="equation-header">
                       <span className="eq-number">#{i + 1}</span>
-                      <button 
-                        className="btn-copy-eq" 
+                      <button
+                        type="button"
+                        className="btn-copy-eq"
                         title="Copy equation"
-                        onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(eq.equation); }}
+                        aria-label="Copy equation"
+                        onClick={(e) => { e.stopPropagation(); copyWithToast(eq.equation, 'Equation'); }}
                       >
                         📋
                       </button>
@@ -373,13 +406,28 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
                   <div key={term} className="glossary-card-new">
                     <div className="term-header">
                       <h4 className="term-title">{term}</h4>
-                      <button 
-                        className="btn-copy-term" 
-                        title="Copy definition"
-                        onClick={() => navigator.clipboard.writeText(`${term}: ${def}`)}
-                      >
-                        📋
-                      </button>
+                      <div className="term-actions">
+                        <button
+                          type="button"
+                          className="btn-copy-term"
+                          title="Copy definition"
+                          aria-label={`Copy definition of ${term}`}
+                          onClick={() => copyWithToast(`${term}: ${def}`, 'Definition')}
+                        >
+                          📋
+                        </button>
+                        {onRemoveFromGlossary && (
+                          <button
+                            type="button"
+                            className="btn-remove-term"
+                            title="Remove from glossary"
+                            aria-label={`Remove ${term} from glossary`}
+                            onClick={() => onRemoveFromGlossary(term)}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="term-definition">{def}</p>
                     <div className="term-footer">
@@ -396,22 +444,26 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
       {/* Quick Actions Section */}
       <div className="sidebar-footer">
         <div className="quick-actions">
-          <button 
-            className="action-btn" 
+          <button
+            type="button"
+            className="action-btn"
             title="Copy all equations to clipboard"
+            aria-label="Copy all equations"
             onClick={() => {
               if (equations.length === 0) return;
-              const text = equations.map((eq, i) => `#${i+1}: ${eq.equation}`).join('\n');
-              navigator.clipboard.writeText(text);
+              const text = equations.map((eq, i) => `#${i + 1}: ${eq.equation}`).join('\n');
+              copyWithToast(text, `${equations.length} equations`);
             }}
             disabled={equations.length === 0}
           >
-            <span className="action-icon">📐</span>
+            <span className="action-icon" aria-hidden="true">📐</span>
             <span className="action-label">Copy Eqs</span>
           </button>
-          <button 
-            className="action-btn" 
-            title="Export glossary as text"
+          <button
+            type="button"
+            className="action-btn"
+            title="Export glossary as text file"
+            aria-label="Export glossary as text"
             onClick={() => {
               if (glossary.size === 0) return;
               const text = Array.from(glossary.entries()).map(([t, d]) => `${t}: ${d}`).join('\n\n');
@@ -420,21 +472,24 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ reportData, equations,
               const a = document.createElement('a');
               a.href = url; a.download = 'glossary.txt'; a.click();
               URL.revokeObjectURL(url);
+              toast.success('Glossary downloaded');
             }}
             disabled={glossary.size === 0}
           >
-            <span className="action-icon">📥</span>
+            <span className="action-icon" aria-hidden="true">📥</span>
             <span className="action-label">Export</span>
           </button>
-          <button 
-            className="action-btn" 
+          <button
+            type="button"
+            className="action-btn"
             title="Copy document info to clipboard"
+            aria-label="Copy document info"
             onClick={() => {
               const info = `File: ${reportData?.filename}\nPages: ${reportData?.total_pages}\nWords: ${stats.wordCount}\nEquations: ${equations.length}\nTerms: ${glossary.size}`;
-              navigator.clipboard.writeText(info);
+              copyWithToast(info, 'Document info');
             }}
           >
-            <span className="action-icon">📋</span>
+            <span className="action-icon" aria-hidden="true">📋</span>
             <span className="action-label">Copy Info</span>
           </button>
         </div>

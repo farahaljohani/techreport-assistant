@@ -1,0 +1,124 @@
+.kbd-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(1, 4, 9, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: kbd-fade-in 0.15s ease-out;
+}
+
+.kbd-modal {
+  width: min(520px, 100%);
+  max-height: min(88vh, 640px);
+  background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kbd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #21262d;
+}
+
+.kbd-header h2 {
+  margin: 0;
+  font-size: 15px;
+  color: #c9d1d9;
+  font-weight: 700;
+}
+
+.kbd-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(48, 54, 61, 0.5);
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.kbd-close:hover {
+  background: #30363d;
+}
+
+.kbd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kbd-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.kbd-row:hover {
+  background: rgba(48, 54, 61, 0.35);
+}
+
+.kbd-keys {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.kbd-plus {
+  color: #6e7681;
+  font-size: 10px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.18rem 0.5rem;
+  font-size: 11px;
+  font-family: 'SFMono-Regular', 'Menlo', monospace;
+  color: #c9d1d9;
+  background: rgba(48, 54, 61, 0.6);
+  border: 1px solid #30363d;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.kbd-desc {
+  color: #8b949e;
+  text-align: right;
+  flex: 1;
+}
+
+.kbd-hint {
+  padding: 0.75rem 1.25rem 1rem;
+  margin: 0;
+  border-top: 1px solid #21262d;
+  color: #6e7681;
+  font-size: 12px;
+}
+
+@keyframes kbd-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,94 +1,61 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { reportService } from '../../services/api';
+import { describeApiError, isCancel } from '../../utils/errors';
+import { CopyButton } from '../CopyButton';
+import type { ReportData } from '../../types';
 import './SummaryTool.css';
 
 interface SummaryToolProps {
   selectedText: string;
-  reportData: any | null;
+  reportData: ReportData | null;
 }
 
 export const SummaryTool: React.FC<SummaryToolProps> = ({ selectedText, reportData }) => {
   const [summary, setSummary] = useState('');
-  const [explanation, setExplanation] = useState('');
-  const [definitions, setDefinitions] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeResult, setActiveResult] = useState<'summary' | 'explain' | 'define' | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Cancel any in-flight request when unmounting or when the report changes.
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+    },
+    []
+  );
+  useEffect(() => {
+    setSummary('');
+    setError(null);
+  }, [reportData?.id]);
 
   const handleSummarize = async () => {
-    if (!selectedText && !reportData?.text) {
-      alert('Please select text or upload a report first');
-      return;
-    }
-    
+    const text = selectedText || reportData?.text?.substring(0, 4000) || '';
+    if (!text.trim()) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
-    setActiveResult('summary');
+    setError(null);
+    setSummary('');
     try {
-      const text = selectedText || reportData?.text?.substring(0, 2000) || '';
-      console.log('Summarizing:', text.substring(0, 100));
-      
-      const result = await reportService.summarize(text, 200);
-      console.log('Summary result:', result);
-      
-      setSummary(result.summary);
-      setExplanation('');
-      setDefinitions('');
-    } catch (error) {
-      console.error('Summarize error:', error);
-      setSummary('❌ Error generating summary. Check console.');
+      const result = await reportService.summarize(text, 200, { signal: controller.signal });
+      if (!controller.signal.aborted) setSummary(result.summary);
+    } catch (err) {
+      if (isCancel(err)) return;
+      setError(describeApiError(err, 'summary'));
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   };
 
-  const handleExplain = async () => {
-    if (!selectedText) {
-      alert('Please highlight text first');
-      return;
-    }
-    
-    setLoading(true);
-    setActiveResult('explain');
-    try {
-      console.log('Explaining:', selectedText.substring(0, 100));
-      
-      const result = await reportService.explain(selectedText, reportData?.filename || '');
-      console.log('Explanation result:', result);
-      
-      setExplanation(result.explanation);
-      setSummary('');
-      setDefinitions('');
-    } catch (error) {
-      console.error('Explain error:', error);
-      setExplanation('❌ Error generating explanation. Check console.');
-    } finally {
-      setLoading(false);
-    }
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    setLoading(false);
   };
 
-  const handleExtractDefinitions = async () => {
-    if (!selectedText) {
-      alert('Please highlight text first');
-      return;
-    }
-    
-    setLoading(true);
-    setActiveResult('define');
-    try {
-      console.log('Extracting definitions from:', selectedText.substring(0, 100));
-      
-      const result = await reportService.extractDefinitions(selectedText);
-      console.log('Definitions result:', result);
-      
-      setDefinitions(result.definitions);
-      setSummary('');
-      setExplanation('');
-    } catch (error) {
-      console.error('Definition extraction error:', error);
-      setDefinitions('❌ Error extracting definitions. Check console.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const disabled = loading || (!selectedText && !reportData?.text);
 
   return (
     <div className="summary-tool">
@@ -96,58 +63,44 @@ export const SummaryTool: React.FC<SummaryToolProps> = ({ selectedText, reportDa
         {selectedText ? (
           <p className="selected-info">✓ Selected: "{selectedText.substring(0, 40)}..."</p>
         ) : (
-          <p className="no-selection">Highlight text to use these tools</p>
+          <p className="no-selection">Highlight text, or summarize the whole report</p>
         )}
       </div>
 
       <div className="tool-buttons">
-        <button 
-          onClick={handleSummarize} 
-          disabled={loading || !selectedText && !reportData?.text}
+        <button
+          type="button"
+          onClick={loading ? handleCancel : handleSummarize}
+          disabled={!loading && disabled}
           className="tool-btn primary"
         >
-          {loading && activeResult === 'summary' ? '⏳ Summarizing...' : '📋 Summarize'}
+          {loading ? '⏳ Summarizing… (click to cancel)' : '📋 Summarize'}
         </button>
-
-        {selectedText && (
-          <>
-            <button 
-              onClick={handleExplain} 
-              disabled={loading}
-              className="tool-btn"
-            >
-              {loading && activeResult === 'explain' ? '⏳ Explaining...' : '💡 Explain'}
-            </button>
-
-            <button 
-              onClick={handleExtractDefinitions} 
-              disabled={loading}
-              className="tool-btn"
-            >
-              {loading && activeResult === 'define' ? '⏳ Extracting...' : '📚 Definitions'}
-            </button>
-          </>
-        )}
       </div>
 
-      {summary && activeResult === 'summary' && (
+      {loading && (
+        <div className="skeleton-block" aria-label="Generating summary" aria-busy="true">
+          <span className="skeleton skeleton-line long" />
+          <span className="skeleton skeleton-line medium" />
+          <span className="skeleton skeleton-line long" />
+          <span className="skeleton skeleton-line short" />
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="result error" role="alert">
+          <h4>⚠️ Couldn't summarize</h4>
+          <p>{error}</p>
+        </div>
+      )}
+
+      {!loading && summary && (
         <div className="result success">
-          <h4>📋 Summary</h4>
+          <div className="result-head">
+            <h4>📋 Summary</h4>
+            <CopyButton text={summary} compact />
+          </div>
           <p>{summary}</p>
-        </div>
-      )}
-
-      {explanation && activeResult === 'explain' && (
-        <div className="result success">
-          <h4>💡 Explanation</h4>
-          <p>{explanation}</p>
-        </div>
-      )}
-
-      {definitions && activeResult === 'define' && (
-        <div className="result success">
-          <h4>📚 Key Terms</h4>
-          <p>{definitions}</p>
         </div>
       )}
     </div>

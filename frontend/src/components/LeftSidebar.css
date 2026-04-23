@@ -915,3 +915,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+.term-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-remove-term {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #6e7681;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.18s ease;
+}
+
+.btn-remove-term:hover {
+  color: #ffb4b0;
+  border-color: rgba(248, 81, 73, 0.4);
+  background: rgba(248, 81, 73, 0.08);
+}

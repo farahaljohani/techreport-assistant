@@ -10,7 +10,12 @@ class Settings:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
     ALLOWED_EXTENSIONS = {"pdf", "txt"}
-    
+
+    # Uploaded PDFs older than this many hours are pruned by the background
+    # cleanup task. Set to 0 to disable automatic cleanup.
+    UPLOAD_RETENTION_HOURS = int(os.getenv("UPLOAD_RETENTION_HOURS", "24"))
+    CLEANUP_INTERVAL_MINUTES = int(os.getenv("CLEANUP_INTERVAL_MINUTES", "60"))
+
     # OpenAI Settings
     OPENAI_TEMPERATURE = 0.7
     OPENAI_MAX_TOKENS = 500

@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { API_ORIGIN } from '../services/api';
+import type { ReportData } from '../types';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import './PDFViewer.css';
@@ -8,7 +10,7 @@ import './PDFViewer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFViewerProps {
-  reportData: any;
+  reportData: ReportData | null;
   onTextSelect?: (text: string) => void;
 }
 
@@ -106,7 +108,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
     );
   }
 
-  const pdfUrl = reportData?.file_path ? `http://localhost:8000${reportData.file_path}` : null;
+  const pdfUrl = reportData?.file_path ? `${API_ORIGIN}${reportData.file_path}` : null;
 
   const goToFirstPage = () => setPageNumber(1);
   const goToLastPage = () => setPageNumber(numPages || 1);
@@ -131,20 +133,24 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
       {/* Controls */}
       <div className="pdf-controls">
         <div className="control-group navigation-group">
-          <button 
+          <button
+            type="button"
             onClick={goToFirstPage}
             disabled={pageNumber <= 1 || loading}
             className="btn-control btn-first"
-            title="First Page"
+            title="First page"
+            aria-label="First page"
           >
             ⏮
           </button>
-          
-          <button 
+
+          <button
+            type="button"
             onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
             disabled={pageNumber <= 1 || loading}
             className="btn-control btn-nav"
-            title="Previous Page"
+            title="Previous page"
+            aria-label="Previous page"
           >
             ◀
           </button>
@@ -163,20 +169,24 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
             <span className="total-pages">{numPages || '...'}</span>
           </div>
           
-          <button 
+          <button
+            type="button"
             onClick={() => setPageNumber(Math.min(numPages || 1, pageNumber + 1))}
             disabled={pageNumber >= (numPages || 1) || loading}
             className="btn-control btn-nav"
-            title="Next Page"
+            title="Next page"
+            aria-label="Next page"
           >
             ▶
           </button>
 
-          <button 
+          <button
+            type="button"
             onClick={goToLastPage}
             disabled={pageNumber >= (numPages || 1) || loading}
             className="btn-control btn-last"
-            title="Last Page"
+            title="Last page"
+            aria-label="Last page"
           >
             ⏭
           </button>
@@ -185,40 +195,49 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
         <div className="control-divider" />
 
         <div className="control-group zoom-group">
-          <button 
+          <button
+            type="button"
             onClick={() => setScale(Math.max(0.5, scale - 0.1))}
             className="btn-control btn-zoom"
             disabled={loading}
-            title="Zoom Out (Ctrl + -)"
+            title="Zoom out (Ctrl + -)"
+            aria-label="Zoom out"
           >
             🔍−
           </button>
-          
+
           <span className="zoom-display">{Math.round(scale * 100)}%</span>
-          
-          <button 
+
+          <button
+            type="button"
             onClick={() => setScale(Math.min(3, scale + 0.1))}
             className="btn-control btn-zoom"
             disabled={loading}
-            title="Zoom In (Ctrl + +)"
+            title="Zoom in (Ctrl + +)"
+            aria-label="Zoom in"
           >
             🔍+
           </button>
 
-          <button 
+          <button
+            type="button"
             onClick={() => setScale(1)}
             className="btn-control btn-reset"
             disabled={loading}
-            title="Reset Zoom"
+            title="Reset zoom"
+            aria-label="Reset zoom"
           >
             ↺
           </button>
 
-          <button 
+          <button
+            type="button"
             onClick={() => setFitToWidth(!fitToWidth)}
             className={`btn-control btn-fit ${fitToWidth ? 'active' : ''}`}
             disabled={loading}
-            title="Fit to Width"
+            title="Fit to width"
+            aria-pressed={fitToWidth}
+            aria-label="Fit to width"
           >
             ⬌
           </button>
@@ -227,20 +246,24 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
         <div className="control-divider" />
 
         <div className="control-group rotate-group">
-          <button 
+          <button
+            type="button"
             onClick={() => setRotation((rotation - 90) % 360)}
             className="btn-control btn-rotate"
             disabled={loading}
-            title="Rotate Left"
+            title="Rotate left"
+            aria-label="Rotate left"
           >
             ↺
           </button>
 
-          <button 
+          <button
+            type="button"
             onClick={() => setRotation((rotation + 90) % 360)}
             className="btn-control btn-rotate"
             disabled={loading}
-            title="Rotate Right"
+            title="Rotate right"
+            aria-label="Rotate right"
           >
             ↻
           </button>
@@ -249,7 +272,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
         <div className="control-divider" />
 
         <div className="control-group actions-group">
-          <button 
+          <button
+            type="button"
             className="btn-control btn-download"
             onClick={() => window.open(pdfUrl || '', '_blank')}
             disabled={loading}
@@ -258,7 +282,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ reportData, onTextSelect }
             ⬇ Download
           </button>
 
-          <button 
+          <button
+            type="button"
             className="btn-control btn-print"
             onClick={() => window.print()}
             disabled={loading}

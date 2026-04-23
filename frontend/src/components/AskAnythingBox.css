@@ -119,3 +119,93 @@
 .ask-box::-webkit-scrollbar-thumb:hover {
   background: #484f58;
 }
+
+.ask-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #8b949e;
+  padding: 0 0.2rem;
+}
+
+.ask-history-count {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.ask-clear-btn {
+  background: transparent;
+  border: none;
+  color: #6e7681;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.ask-clear-btn:hover {
+  color: #f85149;
+  background: rgba(248, 81, 73, 0.1);
+}
+
+.message-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border-radius: 6px;
+  background: #0d1117;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ask-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ask-actions-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ask-btn {
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+  border: 1px solid #3fb950;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.ask-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ask-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(35, 134, 54, 0.35);
+}
+
+.message.assistant .message-content .skeleton {
+  height: 10px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

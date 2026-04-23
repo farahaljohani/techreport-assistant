@@ -40,11 +40,19 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Focus styles for accessibility */
-button:focus,
-input:focus,
-textarea:focus,
-select:focus {
+/* Keyboard-only focus rings (mouse users don't see them) */
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
   outline: 2px solid #58a6ff;
   outline-offset: 2px;
 }
