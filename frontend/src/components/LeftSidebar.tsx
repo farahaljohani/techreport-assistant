@@ -205,7 +205,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               <div className="chart-item">
                 <span className="chart-label">Pages</span>
                 <div className="chart-bar">
-                  <div className="chart-fill" style={{ width: '100%', background: '#58a6ff' }} />
+                  <div className="chart-fill" style={{ width: '100%', background: '#ea580c' }} />
                 </div>
                 <span className="chart-value">{reportData?.total_pages || 0}</span>
               </div>
@@ -216,7 +216,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     className="chart-fill" 
                     style={{ 
                       width: `${Math.min(100, (equations.length / (reportData?.total_pages || 1)) * 100)}%`,
-                      background: '#238636'
+                      background: '#fb923c'
                     }} 
                   />
                 </div>
@@ -229,7 +229,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     className="chart-fill" 
                     style={{ 
                       width: `${Math.min(100, (glossary.size / 10) * 100)}%`,
-                      background: '#f85149'
+                      background: '#f59e0b'
                     }} 
                   />
                 </div>
