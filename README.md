@@ -2,7 +2,7 @@
 
 **Helping People Read and Access Technical Reports.**
 
-A web platform that helps engineering students read, understand, and verify technical reports with a set of smart tools built on top of the OpenAI API.
+A web platform that helps engineering students read, understand, and verify technical reports using smart tools powered by the OpenAI API.
 
 ## Features
 
@@ -57,7 +57,7 @@ FRONTEND_URL=http://localhost:3000
 ENVIRONMENT=development
 ```
 
-Get a key at https://platform.openai.com/api-keys (Create new secret key, then paste it in `backend/.env`).
+Get a key at https://platform.openai.com/api-keys, then paste it into `backend/.env`.
 
 **3. Start the app**
 
