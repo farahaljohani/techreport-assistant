@@ -203,7 +203,7 @@ For HTTPS, put certificates in a `certs/` directory and point Nginx to them. Use
 
 ## License
 
-MIT. See LICENSE file.
+[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) (GPL-3.0). See the [`LICENSE`](LICENSE) file in this repository for the full license text.
 
 ## Author
 

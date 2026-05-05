@@ -2,6 +2,7 @@
   "name": "techreport-assistant-frontend",
   "version": "1.0.0",
   "description": "Frontend for Tech Report Assistant",
+  "license": "GPL-3.0",
   "private": true,
   "proxy": "http://backend:8000",
   "dependencies": {
